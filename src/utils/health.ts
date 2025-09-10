@@ -46,7 +46,7 @@ export interface HealthCheckConfig {
 export class HealthChecker {
   private config: HealthCheckConfig;
   private serviceStatuses: Map<string, ServiceHealth> = new Map();
-  private startTime: number = Date.now();
+  protected startTime: number = Date.now();
 
   constructor(config: Partial<HealthCheckConfig> = {}) {
     this.config = {
@@ -194,7 +194,6 @@ export class HealthChecker {
     
     if (currentStatus) {
       // Calculate success rate based on recent checks (simplified)
-      const wasHealthy = currentStatus.status === 'healthy';
       const isHealthy = newStatus.status === 'healthy';
       
       // Simple success rate calculation (would be more sophisticated in production)

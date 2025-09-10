@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { ParticipantState, ParticipantListResponse } from '../../types/participant';
+import { ParticipantState } from '../../types/participant';
 import { ParticipantService } from '../../services/ParticipantService';
 
 const initialState: ParticipantState = {

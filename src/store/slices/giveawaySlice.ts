@@ -2,9 +2,7 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { 
   GiveawayState, 
   CreateGiveawayRequest, 
-  Giveaway, 
-  FinishMessages,
-  GiveawayHistoryResponse 
+  FinishMessages
 } from '../../types/giveaway';
 import { GiveawayService } from '../../services/GiveawayService';
 import { PAGINATION } from '../../utils/constants';
