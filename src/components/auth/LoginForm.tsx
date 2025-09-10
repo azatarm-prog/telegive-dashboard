@@ -1,111 +1,70 @@
 import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, EyeOff, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAuth } from '@/hooks/useAuth';
-import { loginSchema } from '@/utils/validation';
-import { LoginRequest } from '@/types/auth';
 
-const LoginForm: React.FC = () => {
-  const [showToken, setShowToken] = useState(false);
-  const { login, loading, error, clearError } = useAuth();
+interface LoginFormProps {
+  onSuccess?: () => void;
+}
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    setError,
-  } = useForm<LoginRequest>({
-    resolver: zodResolver(loginSchema),
-  });
+const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
+  const [token, setToken] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const onSubmit = async (data: LoginRequest) => {
-    clearError();
-    
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!token.trim()) {
+      setError('Bot token is required');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
     try {
-      const result = await login(data);
-      
-      if (result.type === 'auth/login/fulfilled') {
-        // Redirect will be handled by the router
-        window.location.href = '/dashboard';
-      } else if (result.type === 'auth/login/rejected') {
-        setError('botToken', {
-          type: 'manual',
-          message: result.payload as string,
-        });
-      }
+      // Simulate login - replace with actual auth logic
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      onSuccess?.();
     } catch (err) {
-      setError('botToken', {
-        type: 'manual',
-        message: 'An unexpected error occurred. Please try again.',
-      });
+      setError('Login failed');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
-        <div className="text-center">
-          <div className="mx-auto h-12 w-12 bg-primary rounded-lg flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-xl">T</span>
-          </div>
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-            Telegive Dashboard
-          </h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Sign in with your bot token to manage giveaways
-          </p>
-        </div>
-
         <Card>
           <CardHeader>
-            <CardTitle>Sign In</CardTitle>
+            <CardTitle>Login to Telegive Dashboard</CardTitle>
             <CardDescription>
-              Enter your Telegram bot token to access the dashboard
+              Enter your bot token to access the giveaway management dashboard
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              {error && (
-                <Alert variant="destructive">
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-
-              <div className="space-y-2">
-                <Label htmlFor="botToken">Bot Token</Label>
-                <div className="relative">
-                  <Input
-                    id="botToken"
-                    type={showToken ? 'text' : 'password'}
-                    placeholder="1234567890:ABCdefGHIjklMNOpqrsTUVwxyz"
-                    {...register('botToken')}
-                    className={errors.botToken ? 'border-red-500' : ''}
-                    data-testid="bot-token-input"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                    onClick={() => setShowToken(!showToken)}
-                  >
-                    {showToken ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
-                {errors.botToken && (
-                  <p className="text-sm text-red-500">{errors.botToken.message}</p>
-                )}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label htmlFor="token" className="block text-sm font-medium text-gray-700">
+                  Bot Token
+                </label>
+                <input
+                  id="token"
+                  type="password"
+                  value={token}
+                  onChange={(e) => setToken(e.target.value)}
+                  placeholder="Enter your bot token"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  disabled={loading}
+                  data-testid="token-input"
+                />
               </div>
+
+              {error && (
+                <div className="text-red-600 text-sm" data-testid="error-message">
+                  {error}
+                </div>
+              )}
 
               <Button
                 type="submit"
@@ -113,33 +72,9 @@ const LoginForm: React.FC = () => {
                 disabled={loading}
                 data-testid="login-button"
               >
-                {loading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                    Signing in...
-                  </>
-                ) : (
-                  <>
-                    <LogIn className="mr-2 h-4 w-4" />
-                    Sign In
-                  </>
-                )}
+                {loading ? 'Logging in...' : 'Login'}
               </Button>
             </form>
-
-            <div className="mt-6 text-center">
-              <p className="text-sm text-gray-600">
-                Don't have a bot token?{' '}
-                <a
-                  href="https://core.telegram.org/bots#6-botfather"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-medium text-primary hover:text-primary/80"
-                >
-                  Create a bot with BotFather
-                </a>
-              </p>
-            </div>
           </CardContent>
         </Card>
       </div>
@@ -148,4 +83,3 @@ const LoginForm: React.FC = () => {
 };
 
 export default LoginForm;
-
