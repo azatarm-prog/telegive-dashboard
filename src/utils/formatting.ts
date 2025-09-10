@@ -2,6 +2,17 @@ export const formatNumber = (num: number): string => {
   return new Intl.NumberFormat('en-US').format(num);
 };
 
+export const formatDate = (date: Date | string | number): string => {
+  const dateObj = new Date(date);
+  return dateObj.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
+
 export const formatPercentage = (value: number, total: number): string => {
   if (total === 0) return '0%';
   return `${Math.round((value / total) * 100)}%`;
