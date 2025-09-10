@@ -1,34 +1,45 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAuth } from '@/hooks/useAuth';
+import { validateBotToken } from '@/utils/validation';
+
+const loginSchema = z.object({
+  token: z.string()
+    .min(1, 'Bot token is required')
+    .refine(validateBotToken, 'Invalid bot token format'),
+});
+
+type LoginFormData = z.infer<typeof loginSchema>;
 
 interface LoginFormProps {
   onSuccess?: () => void;
 }
 
 const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
-  const [token, setToken] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const { login, loading, error } = useAuth();
+  
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    setError: setFormError,
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!token.trim()) {
-      setError('Bot token is required');
-      return;
-    }
-
-    setLoading(true);
-    setError('');
-
+  const onSubmit = async (data: LoginFormData) => {
     try {
-      // Simulate login - replace with actual auth logic
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await login(data.token);
       onSuccess?.();
     } catch (err) {
-      setError('Login failed');
-    } finally {
-      setLoading(false);
+      setFormError('token', {
+        type: 'manual',
+        message: err instanceof Error ? err.message : 'Login failed',
+      });
     }
   };
 
@@ -43,36 +54,40 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              <div className="space-y-2">
                 <label htmlFor="token" className="block text-sm font-medium text-gray-700">
                   Bot Token
                 </label>
                 <input
                   id="token"
                   type="password"
-                  value={token}
-                  onChange={(e) => setToken(e.target.value)}
                   placeholder="Enter your bot token"
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  disabled={loading}
+                  {...register('token')}
+                  disabled={loading || isSubmitting}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
                   data-testid="token-input"
                 />
+                {errors.token && (
+                  <p className="text-sm text-red-600" data-testid="token-error">
+                    {errors.token.message}
+                  </p>
+                )}
               </div>
 
               {error && (
-                <div className="text-red-600 text-sm" data-testid="error-message">
-                  {error}
+                <div className="bg-red-50 border border-red-200 rounded-md p-3" data-testid="login-error">
+                  <p className="text-sm text-red-600">{error}</p>
                 </div>
               )}
 
               <Button
                 type="submit"
                 className="w-full"
-                disabled={loading}
+                disabled={loading || isSubmitting}
                 data-testid="login-button"
               >
-                {loading ? 'Logging in...' : 'Login'}
+                {loading || isSubmitting ? 'Logging in...' : 'Login'}
               </Button>
             </form>
           </CardContent>
@@ -83,3 +98,4 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
 };
 
 export default LoginForm;
+
