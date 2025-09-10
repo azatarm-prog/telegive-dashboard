@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  telegive-dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - VITE_API_BASE_URL=https://api.telegive.com
+      - VITE_TELEGIVE_AUTH_URL=https://api.telegive.com/auth
+      - VITE_TELEGIVE_CHANNEL_URL=https://api.telegive.com/channels
+      - VITE_TELEGIVE_GIVEAWAY_URL=https://api.telegive.com/giveaways
+      - VITE_TELEGIVE_PARTICIPANT_URL=https://api.telegive.com/participants
+      - VITE_TELEGIVE_MEDIA_URL=https://api.telegive.com/media
+      - VITE_TELEGIVE_BOT_URL=https://api.telegive.com/bot
+      - VITE_WS_URL=wss://api.telegive.com/ws
+      - VITE_APP_NAME=Telegive Dashboard
+      - VITE_APP_VERSION=1.0.0
+      - VITE_ENABLE_REAL_TIME_UPDATES=true
+      - VITE_ENABLE_ANALYTICS=false
+      - VITE_ENABLE_DEBUG_MODE=false
+      - VITE_MAX_FILE_SIZE=52428800
+      - VITE_ALLOWED_IMAGE_TYPES=image/jpeg,image/png,image/gif
+      - VITE_ALLOWED_VIDEO_TYPES=video/mp4,video/mov,video/avi
+      - VITE_THEME_PRIMARY_COLOR=#3b82f6
+      - VITE_THEME_SECONDARY_COLOR=#64748b
+      - VITE_ITEMS_PER_PAGE=20
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: Add nginx reverse proxy for production
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - telegive-dashboard
+    restart: unless-stopped
+    profiles:
+      - production
+
