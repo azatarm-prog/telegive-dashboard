@@ -1,0 +1,425 @@
+name: Enhanced Deployment Pipeline with Proactive Measures
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+env:
+  NODE_VERSION: '18'
+  PNPM_VERSION: '8'
+
+jobs:
+  validate:
+    name: Pre-deployment Validation
+    runs-on: ubuntu-latest
+    
+    outputs:
+      deployment-ready: ${{ steps.validation.outputs.ready }}
+      build-hash: ${{ steps.build.outputs.hash }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Full history for rollback capability
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: ${{ env.PNPM_VERSION }}
+    
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.pnpm-store
+          node_modules
+        key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-pnpm-
+    
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+    
+    - name: Run pre-deployment validation
+      id: validation
+      run: |
+        chmod +x scripts/pre-deploy-validate.sh
+        if ./scripts/pre-deploy-validate.sh --report; then
+          echo "ready=true" >> $GITHUB_OUTPUT
+        else
+          echo "ready=false" >> $GITHUB_OUTPUT
+          exit 1
+        fi
+    
+    - name: Build application
+      id: build
+      run: |
+        pnpm run build
+        BUILD_HASH=$(find dist -type f -exec sha256sum {} \; | sha256sum | cut -d' ' -f1)
+        echo "hash=$BUILD_HASH" >> $GITHUB_OUTPUT
+    
+    - name: Run comprehensive tests
+      run: |
+        # Unit tests
+        pnpm run test --coverage --passWithNoTests
+        
+        # Type checking
+        pnpm run type-check || echo "Type check warnings detected"
+        
+        # Linting
+        pnpm run lint || echo "Linting warnings detected"
+    
+    - name: Security audit
+      run: |
+        pnpm audit --audit-level moderate || echo "Security audit warnings detected"
+    
+    - name: Bundle analysis
+      run: |
+        # Analyze bundle size
+        if [ -d "dist" ]; then
+          echo "Bundle size analysis:"
+          du -sh dist/*
+          
+          # Check for large files
+          find dist -type f -size +1M -exec ls -lh {} \; | head -10
+        fi
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: build-artifacts-${{ steps.build.outputs.hash }}
+        path: |
+          dist/
+          deployment-report.json
+        retention-days: 30
+    
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: test-results
+        path: |
+          coverage/
+          test-results/
+        retention-days: 7
+
+  security-scan:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    needs: validate
+    if: needs.validate.outputs.deployment-ready == 'true'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+    
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [validate, security-scan]
+    if: |
+      needs.validate.outputs.deployment-ready == 'true' && 
+      github.ref == 'refs/heads/main' &&
+      github.event_name == 'push'
+    
+    environment:
+      name: staging
+      url: ${{ steps.deploy.outputs.url }}
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Download build artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: build-artifacts-${{ needs.validate.outputs.build-hash }}
+    
+    - name: Deploy to Railway (Staging)
+      id: deploy
+      uses: railwayapp/railway-deploy@v1
+      with:
+        railway-token: ${{ secrets.RAILWAY_TOKEN_STAGING }}
+        service: ${{ secrets.RAILWAY_SERVICE_NAME_STAGING }}
+    
+    - name: Wait for deployment
+      run: sleep 120
+    
+    - name: Post-deployment validation (Staging)
+      run: |
+        chmod +x scripts/post-deploy-validate.sh
+        ./scripts/post-deploy-validate.sh ${{ secrets.RAILWAY_SERVICE_URL_STAGING }}
+    
+    - name: Health monitoring (5 minutes)
+      run: |
+        echo "Monitoring staging deployment health for 5 minutes..."
+        for i in {1..10}; do
+          if curl -f "${{ secrets.RAILWAY_SERVICE_URL_STAGING }}/health" > /dev/null 2>&1; then
+            echo "✅ Health check $i/10 passed"
+          else
+            echo "❌ Health check $i/10 failed"
+            exit 1
+          fi
+          sleep 30
+        done
+    
+    - name: Upload staging validation report
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: staging-validation-report
+        path: deployment-validation-report.json
+
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [validate, security-scan, deploy-staging]
+    if: |
+      needs.validate.outputs.deployment-ready == 'true' && 
+      github.ref == 'refs/heads/main' &&
+      github.event_name == 'push'
+    
+    environment:
+      name: production
+      url: ${{ steps.deploy.outputs.url }}
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Need full history for rollback
+    
+    - name: Download build artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: build-artifacts-${{ needs.validate.outputs.build-hash }}
+    
+    - name: Pre-production checks
+      run: |
+        echo "Running final pre-production checks..."
+        
+        # Verify staging is healthy
+        if ! curl -f "${{ secrets.RAILWAY_SERVICE_URL_STAGING }}/health" > /dev/null 2>&1; then
+          echo "❌ Staging environment is not healthy. Aborting production deployment."
+          exit 1
+        fi
+        
+        echo "✅ Staging environment is healthy"
+    
+    - name: Create deployment backup point
+      id: backup
+      run: |
+        BACKUP_COMMIT=$(git rev-parse HEAD~1)
+        echo "backup-commit=$BACKUP_COMMIT" >> $GITHUB_OUTPUT
+        echo "Backup commit for rollback: $BACKUP_COMMIT"
+    
+    - name: Deploy to Railway (Production)
+      id: deploy
+      uses: railwayapp/railway-deploy@v1
+      with:
+        railway-token: ${{ secrets.RAILWAY_TOKEN }}
+        service: ${{ secrets.RAILWAY_SERVICE_NAME }}
+    
+    - name: Wait for deployment
+      run: sleep 180  # Longer wait for production
+    
+    - name: Post-deployment validation (Production)
+      id: validation
+      run: |
+        chmod +x scripts/post-deploy-validate.sh
+        if ./scripts/post-deploy-validate.sh ${{ secrets.RAILWAY_SERVICE_URL }}; then
+          echo "validation-status=success" >> $GITHUB_OUTPUT
+        else
+          echo "validation-status=failed" >> $GITHUB_OUTPUT
+          exit 1
+        fi
+    
+    - name: Extended health monitoring (10 minutes)
+      run: |
+        echo "Monitoring production deployment health for 10 minutes..."
+        for i in {1..20}; do
+          if curl -f "${{ secrets.RAILWAY_SERVICE_URL }}/health" > /dev/null 2>&1; then
+            echo "✅ Health check $i/20 passed"
+          else
+            echo "❌ Health check $i/20 failed"
+            # Don't exit immediately, allow a few failures
+            if [ $i -gt 5 ]; then
+              echo "Too many health check failures. Deployment may be unstable."
+              exit 1
+            fi
+          fi
+          sleep 30
+        done
+    
+    - name: Performance validation
+      run: |
+        echo "Running performance validation..."
+        
+        # Test response times
+        for i in {1..5}; do
+          response_time=$(curl -s -o /dev/null -w "%{time_total}" "${{ secrets.RAILWAY_SERVICE_URL }}")
+          response_time_ms=$(echo "$response_time * 1000" | bc -l | cut -d. -f1)
+          echo "Response time test $i: ${response_time_ms}ms"
+          
+          if [ "$response_time_ms" -gt 10000 ]; then
+            echo "❌ Response time too slow: ${response_time_ms}ms"
+            exit 1
+          fi
+        done
+        
+        echo "✅ Performance validation passed"
+    
+    - name: Upload production validation report
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: production-validation-report
+        path: deployment-validation-report.json
+
+  rollback:
+    name: Emergency Rollback
+    runs-on: ubuntu-latest
+    needs: [validate, deploy-production]
+    if: failure() && needs.validate.outputs.deployment-ready == 'true'
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Get backup commit
+      id: backup
+      run: |
+        BACKUP_COMMIT=$(git log --oneline -n 2 | tail -1 | cut -d' ' -f1)
+        echo "backup-commit=$BACKUP_COMMIT" >> $GITHUB_OUTPUT
+        echo "Rolling back to commit: $BACKUP_COMMIT"
+    
+    - name: Execute emergency rollback
+      run: |
+        chmod +x scripts/rollback.sh
+        ./scripts/rollback.sh ${{ steps.backup.outputs.backup-commit }} ${{ secrets.RAILWAY_SERVICE_URL }} true
+    
+    - name: Verify rollback
+      run: |
+        echo "Verifying rollback deployment..."
+        sleep 120
+        
+        if curl -f "${{ secrets.RAILWAY_SERVICE_URL }}/health" > /dev/null 2>&1; then
+          echo "✅ Rollback successful - service is healthy"
+        else
+          echo "❌ Rollback verification failed"
+          exit 1
+        fi
+    
+    - name: Upload rollback report
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: rollback-report
+        path: rollback-report.json
+
+  notify:
+    name: Deployment Notification
+    runs-on: ubuntu-latest
+    needs: [validate, deploy-staging, deploy-production, rollback]
+    if: always()
+    
+    steps:
+    - name: Determine deployment status
+      id: status
+      run: |
+        if [ "${{ needs.deploy-production.result }}" == "success" ]; then
+          echo "status=success" >> $GITHUB_OUTPUT
+          echo "message=✅ Production deployment successful" >> $GITHUB_OUTPUT
+        elif [ "${{ needs.rollback.result }}" == "success" ]; then
+          echo "status=rollback" >> $GITHUB_OUTPUT
+          echo "message=🔄 Emergency rollback completed" >> $GITHUB_OUTPUT
+        else
+          echo "status=failure" >> $GITHUB_OUTPUT
+          echo "message=❌ Deployment failed" >> $GITHUB_OUTPUT
+        fi
+    
+    - name: Send Slack notification
+      uses: 8398a7/action-slack@v3
+      with:
+        status: custom
+        custom_payload: |
+          {
+            "text": "${{ steps.status.outputs.message }}",
+            "attachments": [
+              {
+                "color": "${{ steps.status.outputs.status == 'success' && 'good' || steps.status.outputs.status == 'rollback' && 'warning' || 'danger' }}",
+                "fields": [
+                  {
+                    "title": "Repository",
+                    "value": "${{ github.repository }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Commit",
+                    "value": "${{ github.sha }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Branch",
+                    "value": "${{ github.ref_name }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Status",
+                    "value": "${{ steps.status.outputs.status }}",
+                    "short": true
+                  }
+                ]
+              }
+            ]
+          }
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      if: env.SLACK_WEBHOOK_URL != ''
+    
+    - name: Create deployment summary
+      run: |
+        echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Status:** ${{ steps.status.outputs.status }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [ "${{ needs.deploy-production.result }}" == "success" ]; then
+          echo "✅ **Production deployment completed successfully**" >> $GITHUB_STEP_SUMMARY
+          echo "- Staging validation: ✅" >> $GITHUB_STEP_SUMMARY
+          echo "- Production deployment: ✅" >> $GITHUB_STEP_SUMMARY
+          echo "- Health monitoring: ✅" >> $GITHUB_STEP_SUMMARY
+          echo "- Performance validation: ✅" >> $GITHUB_STEP_SUMMARY
+        elif [ "${{ needs.rollback.result }}" == "success" ]; then
+          echo "🔄 **Emergency rollback completed**" >> $GITHUB_STEP_SUMMARY
+          echo "- Rollback execution: ✅" >> $GITHUB_STEP_SUMMARY
+          echo "- Service verification: ✅" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ **Deployment failed**" >> $GITHUB_STEP_SUMMARY
+          echo "Please check the logs and take appropriate action." >> $GITHUB_STEP_SUMMARY
+        fi
+
