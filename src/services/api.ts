@@ -1,7 +1,8 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { STORAGE_KEYS } from '../utils/constants';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+// Use the auth service URL as the primary API base, with production fallback
+const API_BASE_URL = import.meta.env.VITE_TELEGIVE_AUTH_URL || 'https://web-production-ddd7e.up.railway.app';
 
 class ApiClient {
   private client: AxiosInstance;
