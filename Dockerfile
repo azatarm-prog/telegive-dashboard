@@ -45,6 +45,6 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# Start the application
-CMD ["npx", "serve", "-s", "dist", "-l", "3000"]
+# Start the application with proper SPA routing support
+CMD ["npx", "serve", "-s", "dist", "-l", "3000", "--single"]
 
