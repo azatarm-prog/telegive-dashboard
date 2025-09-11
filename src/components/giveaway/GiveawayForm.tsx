@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Gift, Users, Clock, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { getServiceUrl, logServiceUrls } from '@/services/serviceConfig';
 
 const giveawaySchema = z.object({
   title: z.string()
@@ -66,8 +67,14 @@ const GiveawayForm: React.FC<GiveawayFormProps> = ({ onSuccess, initialData }) =
     setError(null);
 
     try {
+      // Debug logging to check service configuration
+      logServiceUrls();
+      
+      const giveawayUrl = getServiceUrl('GIVEAWAY');
+      console.log('Using giveaway URL:', giveawayUrl);
+      
       // Call the giveaway service API
-      const response = await fetch(`${import.meta.env.VITE_TELEGIVE_GIVEAWAY_URL}/api/giveaways/create`, {
+      const response = await fetch(`${giveawayUrl}/api/giveaways/create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

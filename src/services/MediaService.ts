@@ -30,7 +30,7 @@ export class MediaService {
   }
 
   static getFileUrl(filename: string): string {
-    const baseUrl = import.meta.env.VITE_TELEGIVE_MEDIA_URL || 'http://localhost:3000';
+    const baseUrl = import.meta.env.VITE_TELEGIVE_MEDIA_URL || 'https://telegive-media-production.up.railway.app';
     return `${baseUrl}/api/media/files/${filename}`;
   }
 
