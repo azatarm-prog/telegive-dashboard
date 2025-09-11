@@ -13,13 +13,14 @@ import { ROUTES } from '@/utils/constants';
 
 const DashboardPage: React.FC = () => {
   const { account } = useAuth();
-  const { activeGiveaway, loading, fetchActiveGiveaway } = useGiveaway();
+  // Temporarily disable giveaway fetching to isolate the issue
+  // const { activeGiveaway, loading, fetchActiveGiveaway } = useGiveaway();
 
-  useEffect(() => {
-    if (account) {
-      fetchActiveGiveaway(account.id);
-    }
-  }, [account, fetchActiveGiveaway]);
+  // useEffect(() => {
+  //   if (account) {
+  //     fetchActiveGiveaway(account.id);
+  //   }
+  // }, [account, fetchActiveGiveaway]);
 
   return (
     <div className="min-h-screen bg-gray-50" data-testid="dashboard">
@@ -37,18 +38,16 @@ const DashboardPage: React.FC = () => {
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
                 <p className="text-gray-600">
-                  Welcome back, {account?.first_name}! Manage your giveaways here.
+                  Welcome back, {account?.first_name || 'User'}! Manage your giveaways here.
                 </p>
               </div>
               
-              {!activeGiveaway && (
-                <Link to={ROUTES.CREATE_GIVEAWAY}>
-                  <Button data-testid="create-giveaway-button">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Create Giveaway
-                  </Button>
-                </Link>
-              )}
+              <Link to={ROUTES.CREATE_GIVEAWAY}>
+                <Button data-testid="create-giveaway-button">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create Giveaway
+                </Button>
+              </Link>
             </div>
 
             {/* Quick Stats */}
@@ -61,11 +60,9 @@ const DashboardPage: React.FC = () => {
                   <TrendingUp className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">
-                    {activeGiveaway ? '1' : '0'}
-                  </div>
+                  <div className="text-2xl font-bold">0</div>
                   <p className="text-xs text-muted-foreground">
-                    {activeGiveaway ? 'Currently running' : 'No active giveaway'}
+                    No active giveaway
                   </p>
                 </CardContent>
               </Card>
@@ -78,9 +75,7 @@ const DashboardPage: React.FC = () => {
                   <TrendingUp className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">
-                    {activeGiveaway?.participant_count || 0}
-                  </div>
+                  <div className="text-2xl font-bold">0</div>
                   <p className="text-xs text-muted-foreground">
                     In current giveaway
                   </p>
@@ -95,9 +90,7 @@ const DashboardPage: React.FC = () => {
                   <TrendingUp className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">
-                    {activeGiveaway?.winner_count || 0}
-                  </div>
+                  <div className="text-2xl font-bold">0</div>
                   <p className="text-xs text-muted-foreground">
                     When giveaway ends
                   </p>
@@ -109,15 +102,20 @@ const DashboardPage: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Active Giveaway Section */}
               <div className="lg:col-span-2">
-                {loading ? (
-                  <Card>
-                    <CardContent className="p-6">
-                      <LoadingSpinner size="lg" text="Loading dashboard..." />
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <ActiveGiveaway />
-                )}
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="text-center py-8">
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">No Active Giveaway</h3>
+                      <p className="text-gray-600 mb-4">Create your first giveaway to get started!</p>
+                      <Link to={ROUTES.CREATE_GIVEAWAY}>
+                        <Button>
+                          <Plus className="mr-2 h-4 w-4" />
+                          Create Giveaway
+                        </Button>
+                      </Link>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
 
               {/* Quick Actions Sidebar */}
@@ -130,14 +128,12 @@ const DashboardPage: React.FC = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    {!activeGiveaway && (
-                      <Link to={ROUTES.CREATE_GIVEAWAY} className="block">
-                        <Button variant="outline" className="w-full justify-start">
-                          <Plus className="mr-2 h-4 w-4" />
-                          Create New Giveaway
-                        </Button>
-                      </Link>
-                    )}
+                    <Link to={ROUTES.CREATE_GIVEAWAY} className="block">
+                      <Button variant="outline" className="w-full justify-start">
+                        <Plus className="mr-2 h-4 w-4" />
+                        Create New Giveaway
+                      </Button>
+                    </Link>
                     
                     <Link to={ROUTES.HISTORY} className="block">
                       <Button variant="outline" className="w-full justify-start">
