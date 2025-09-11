@@ -72,6 +72,18 @@ const GiveawayForm: React.FC<GiveawayFormProps> = ({ onSuccess, initialData }) =
       
       const giveawayUrl = getServiceUrl('GIVEAWAY');
       console.log('Using giveaway URL:', giveawayUrl);
+      console.log('Account data:', account);
+      console.log('Account ID being sent:', parseInt(account.id));
+      
+      const requestBody = {
+        account_id: parseInt(account.id),
+        title: data.title,
+        main_body: data.description,
+        winner_count: data.winnerCount,
+        participation_button_text: data.participationButtonText || 'Join Giveaway',
+      };
+      
+      console.log('Request body:', requestBody);
       
       // Call the giveaway service API
       const response = await fetch(`${giveawayUrl}/api/giveaways/create`, {
@@ -80,18 +92,21 @@ const GiveawayForm: React.FC<GiveawayFormProps> = ({ onSuccess, initialData }) =
           'Content-Type': 'application/json',
           // Note: Authentication not required for testing according to API docs
         },
-        body: JSON.stringify({
-          account_id: parseInt(account.id),
-          title: data.title,
-          main_body: data.description,
-          winner_count: data.winnerCount,
-          participation_button_text: data.participationButtonText || 'Join Giveaway',
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+        console.error('API Error Response:', errorData);
+        
+        // Show specific API error message if available
+        if (errorData.error) {
+          throw new Error(errorData.error);
+        } else if (errorData.validation_errors && errorData.validation_errors.length > 0) {
+          throw new Error(`Validation failed: ${errorData.validation_errors.join(', ')}`);
+        } else {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
       }
 
       const result = await response.json();
@@ -107,16 +122,11 @@ const GiveawayForm: React.FC<GiveawayFormProps> = ({ onSuccess, initialData }) =
     } catch (err: any) {
       console.error('Failed to create giveaway:', err);
       
-      let errorMessage = 'Failed to create giveaway. Please try again.';
+      let errorMessage = err.message || 'Failed to create giveaway. Please try again.';
       
-      if (err.message.includes('Network Error') || err.message.includes('fetch')) {
+      // Only use generic messages for network errors
+      if (err.message && err.message.includes('fetch')) {
         errorMessage = 'Unable to connect to giveaway service. Please check your internet connection.';
-      } else if (err.message.includes('401')) {
-        errorMessage = 'Authentication failed. Please log in again.';
-      } else if (err.message.includes('400')) {
-        errorMessage = 'Invalid giveaway data. Please check your inputs.';
-      } else if (err.message) {
-        errorMessage = err.message;
       }
       
       setError(errorMessage);
