@@ -9,7 +9,7 @@ export class AuthService {
     try {
       // First try to login with existing bot
       const loginResponse = await axios.post<LoginResponse>(`${AUTH_SERVICE_URL}/api/auth/login`, {
-        botToken: data.botToken
+        bot_token: data.botToken
       }, {
         headers: {
           'Content-Type': 'application/json',
@@ -30,7 +30,7 @@ export class AuthService {
       if (error.response?.status === 404 || error.response?.status === 401) {
         try {
           const signupResponse = await axios.post<LoginResponse>(`${AUTH_SERVICE_URL}/api/auth/signup`, {
-            botToken: data.botToken
+            bot_token: data.botToken
           }, {
             headers: {
               'Content-Type': 'application/json',
