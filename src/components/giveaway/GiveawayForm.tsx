@@ -3,6 +3,10 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 const giveawaySchema = z.object({
@@ -40,6 +44,7 @@ const GiveawayForm: React.FC<GiveawayFormProps> = ({ onSubmit, initialData }) =>
     handleSubmit,
     formState: { errors, isSubmitting },
     watch,
+    setValue,
   } = useForm<GiveawayFormData>({
     resolver: zodResolver(giveawaySchema),
     defaultValues: {
@@ -81,15 +86,12 @@ const GiveawayForm: React.FC<GiveawayFormProps> = ({ onSubmit, initialData }) =>
             <h3 className="text-lg font-medium">Basic Information</h3>
             
             <div className="space-y-2">
-              <label htmlFor="title" className="block text-sm font-medium text-gray-700">
-                Giveaway Title *
-              </label>
-              <input
+              <Label htmlFor="title">Giveaway Title *</Label>
+              <Input
                 id="title"
                 type="text"
                 {...register('title')}
                 placeholder="Enter an exciting giveaway title"
-                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 disabled={isSubmitting}
                 data-testid="title-input"
               />
@@ -101,15 +103,12 @@ const GiveawayForm: React.FC<GiveawayFormProps> = ({ onSubmit, initialData }) =>
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                Description *
-              </label>
-              <textarea
+              <Label htmlFor="description">Description *</Label>
+              <Textarea
                 id="description"
                 {...register('description')}
                 placeholder="Describe what participants can win and how to participate"
                 rows={4}
-                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 disabled={isSubmitting}
                 data-testid="description-input"
               />
@@ -127,16 +126,13 @@ const GiveawayForm: React.FC<GiveawayFormProps> = ({ onSubmit, initialData }) =>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label htmlFor="winnerCount" className="block text-sm font-medium text-gray-700">
-                  Number of Winners *
-                </label>
-                <input
+                <Label htmlFor="winnerCount">Number of Winners *</Label>
+                <Input
                   id="winnerCount"
                   type="number"
                   {...register('winnerCount', { valueAsNumber: true })}
                   min="1"
                   max="100"
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   disabled={isSubmitting}
                   data-testid="winner-count-input"
                 />
@@ -148,16 +144,13 @@ const GiveawayForm: React.FC<GiveawayFormProps> = ({ onSubmit, initialData }) =>
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="duration" className="block text-sm font-medium text-gray-700">
-                  Duration (hours) *
-                </label>
-                <input
+                <Label htmlFor="duration">Duration (hours) *</Label>
+                <Input
                   id="duration"
                   type="number"
                   {...register('duration', { valueAsNumber: true })}
                   min="1"
                   max="168"
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   disabled={isSubmitting}
                   data-testid="duration-input"
                 />
@@ -176,42 +169,35 @@ const GiveawayForm: React.FC<GiveawayFormProps> = ({ onSubmit, initialData }) =>
             
             <div className="space-y-3">
               <div className="flex items-center space-x-2">
-                <input
+                <Checkbox
                   id="subscribeChannel"
-                  type="checkbox"
                   {...register('requirements.subscribeChannel')}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   disabled={isSubmitting}
                 />
-                <label htmlFor="subscribeChannel" className="text-sm font-medium text-gray-700">
+                <Label htmlFor="subscribeChannel" className="text-sm font-medium">
                   Require channel subscription
-                </label>
+                </Label>
               </div>
 
               <div className="flex items-center space-x-2">
-                <input
+                <Checkbox
                   id="sharePost"
-                  type="checkbox"
                   {...register('requirements.sharePost')}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   disabled={isSubmitting}
                 />
-                <label htmlFor="sharePost" className="text-sm font-medium text-gray-700">
+                <Label htmlFor="sharePost" className="text-sm font-medium">
                   Require post sharing
-                </label>
+                </Label>
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="inviteFriends" className="block text-sm font-medium text-gray-700">
-                  Required friend invitations (0 = none)
-                </label>
-                <input
+                <Label htmlFor="inviteFriends">Required friend invitations (0 = none)</Label>
+                <Input
                   id="inviteFriends"
                   type="number"
                   {...register('requirements.inviteFriends', { valueAsNumber: true })}
                   min="0"
                   max="50"
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   disabled={isSubmitting}
                   data-testid="invite-friends-input"
                 />

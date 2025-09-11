@@ -3,6 +3,10 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 const finishMessagesSchema = z.object({
@@ -99,15 +103,12 @@ const FinishMessages: React.FC<FinishMessagesProps> = ({
             <h3 className="text-lg font-medium">Message Content</h3>
             
             <div className="space-y-2">
-              <label htmlFor="winnerMessage" className="block text-sm font-medium text-gray-700">
-                Winner Message *
-              </label>
-              <textarea
+              <Label htmlFor="winnerMessage">Winner Message *</Label>
+              <Textarea
                 id="winnerMessage"
                 {...register('winnerMessage')}
                 placeholder="🎉 Congratulations! You won our giveaway!"
                 rows={4}
-                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 disabled={isSubmitting}
                 data-testid="winner-message-input"
               />
@@ -117,40 +118,40 @@ const FinishMessages: React.FC<FinishMessagesProps> = ({
                 </p>
               )}
               <div className="flex flex-wrap gap-2 mt-2">
-                <button
+                <Button
                   type="button"
+                  variant="outline"
+                  size="sm"
                   onClick={() => insertTemplate('winnerMessage', ' {username}')}
-                  className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded"
                 >
                   + Username
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant="outline"
+                  size="sm"
                   onClick={() => insertTemplate('winnerMessage', ' {giveaway_title}')}
-                  className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded"
                 >
                   + Giveaway Title
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant="outline"
+                  size="sm"
                   onClick={() => insertTemplate('winnerMessage', ' {prize}')}
-                  className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded"
                 >
                   + Prize
-                </button>
+                </Button>
               </div>
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="participantMessage" className="block text-sm font-medium text-gray-700">
-                Participant Message *
-              </label>
-              <textarea
+              <Label htmlFor="participantMessage">Participant Message *</Label>
+              <Textarea
                 id="participantMessage"
                 {...register('participantMessage')}
                 placeholder="Thank you for participating in our giveaway!"
                 rows={4}
-                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 disabled={isSubmitting}
                 data-testid="participant-message-input"
               />
@@ -160,27 +161,30 @@ const FinishMessages: React.FC<FinishMessagesProps> = ({
                 </p>
               )}
               <div className="flex flex-wrap gap-2 mt-2">
-                <button
+                <Button
                   type="button"
+                  variant="outline"
+                  size="sm"
                   onClick={() => insertTemplate('participantMessage', ' {username}')}
-                  className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded"
                 >
                   + Username
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant="outline"
+                  size="sm"
                   onClick={() => insertTemplate('participantMessage', ' {giveaway_title}')}
-                  className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded"
                 >
                   + Giveaway Title
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant="outline"
+                  size="sm"
                   onClick={() => insertTemplate('participantMessage', ' {total_participants}')}
-                  className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded"
                 >
                   + Total Participants
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -191,55 +195,46 @@ const FinishMessages: React.FC<FinishMessagesProps> = ({
             
             <div className="space-y-3">
               <div className="flex items-center space-x-2">
-                <input
+                <Checkbox
                   id="sendToWinners"
-                  type="checkbox"
                   {...register('notificationSettings.sendToWinners')}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   disabled={isSubmitting}
                 />
-                <label htmlFor="sendToWinners" className="text-sm font-medium text-gray-700">
+                <Label htmlFor="sendToWinners" className="text-sm font-medium">
                   Send notifications to winners
-                </label>
+                </Label>
               </div>
 
               <div className="flex items-center space-x-2">
-                <input
+                <Checkbox
                   id="sendToParticipants"
-                  type="checkbox"
                   {...register('notificationSettings.sendToParticipants')}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   disabled={isSubmitting}
                 />
-                <label htmlFor="sendToParticipants" className="text-sm font-medium text-gray-700">
+                <Label htmlFor="sendToParticipants" className="text-sm font-medium">
                   Send notifications to all participants
-                </label>
+                </Label>
               </div>
 
               <div className="flex items-center space-x-2">
-                <input
+                <Checkbox
                   id="sendToChannel"
-                  type="checkbox"
                   {...register('notificationSettings.sendToChannel')}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   disabled={isSubmitting}
                 />
-                <label htmlFor="sendToChannel" className="text-sm font-medium text-gray-700">
+                <Label htmlFor="sendToChannel" className="text-sm font-medium">
                   Post results to channel
-                </label>
+                </Label>
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="delayMinutes" className="block text-sm font-medium text-gray-700">
-                  Delay notifications (minutes)
-                </label>
-                <input
+                <Label htmlFor="delayMinutes">Delay notifications (minutes)</Label>
+                <Input
                   id="delayMinutes"
                   type="number"
                   {...register('notificationSettings.delayMinutes', { valueAsNumber: true })}
                   min="0"
                   max="60"
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   disabled={isSubmitting}
                   data-testid="delay-input"
                 />
@@ -258,54 +253,45 @@ const FinishMessages: React.FC<FinishMessagesProps> = ({
             
             <div className="space-y-3">
               <div className="flex items-center space-x-2">
-                <input
+                <Checkbox
                   id="includeGiveawayTitle"
-                  type="checkbox"
                   {...register('messageFormat.includeGiveawayTitle')}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   disabled={isSubmitting}
                 />
-                <label htmlFor="includeGiveawayTitle" className="text-sm font-medium text-gray-700">
+                <Label htmlFor="includeGiveawayTitle" className="text-sm font-medium">
                   Include giveaway title in messages
-                </label>
+                </Label>
               </div>
 
               <div className="flex items-center space-x-2">
-                <input
+                <Checkbox
                   id="includeParticipantCount"
-                  type="checkbox"
                   {...register('messageFormat.includeParticipantCount')}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   disabled={isSubmitting}
                 />
-                <label htmlFor="includeParticipantCount" className="text-sm font-medium text-gray-700">
+                <Label htmlFor="includeParticipantCount" className="text-sm font-medium">
                   Include total participant count
-                </label>
+                </Label>
               </div>
 
               <div className="flex items-center space-x-2">
-                <input
+                <Checkbox
                   id="includeTimestamp"
-                  type="checkbox"
                   {...register('messageFormat.includeTimestamp')}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   disabled={isSubmitting}
                 />
-                <label htmlFor="includeTimestamp" className="text-sm font-medium text-gray-700">
+                <Label htmlFor="includeTimestamp" className="text-sm font-medium">
                   Include timestamp in messages
-                </label>
+                </Label>
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="customSignature" className="block text-sm font-medium text-gray-700">
-                  Custom signature (optional)
-                </label>
-                <input
+                <Label htmlFor="customSignature">Custom signature (optional)</Label>
+                <Input
                   id="customSignature"
                   type="text"
                   {...register('messageFormat.customSignature')}
                   placeholder="e.g., - Your Brand Team"
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   disabled={isSubmitting}
                   data-testid="signature-input"
                 />

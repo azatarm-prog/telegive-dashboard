@@ -3,7 +3,10 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/hooks/useAuth';
 import { validateBotToken } from '@/utils/validation';
 
@@ -56,16 +59,13 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
           <CardContent>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
-                <label htmlFor="token" className="block text-sm font-medium text-gray-700">
-                  Bot Token
-                </label>
-                <input
+                <Label htmlFor="token">Bot Token</Label>
+                <Input
                   id="token"
                   type="password"
                   placeholder="Enter your bot token"
                   {...register('token')}
                   disabled={loading || isSubmitting}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
                   data-testid="token-input"
                 />
                 {errors.token && (
@@ -76,9 +76,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
               </div>
 
               {error && (
-                <div className="bg-red-50 border border-red-200 rounded-md p-3" data-testid="login-error">
-                  <p className="text-sm text-red-600">{error}</p>
-                </div>
+                <Alert variant="destructive" data-testid="login-error">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
               )}
 
               <Button
