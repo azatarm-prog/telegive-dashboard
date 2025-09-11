@@ -14,3 +14,4 @@ createRoot(rootElement).render(
   </StrictMode>
 );
 
+console.log('Environment check:', import.meta.env.VITE_TELEGIVE_GIVEAWAY_URL);
