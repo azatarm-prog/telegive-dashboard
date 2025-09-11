@@ -1,50 +1,45 @@
-# Use Node.js 18 Alpine as base image
-FROM node:18-alpine AS base
+# Use Node.js 18 Alpine as base image for building
+FROM node:18-alpine AS builder
 
-# Install dependencies only when needed
-FROM base AS deps
-# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
-RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Install dependencies based on the preferred package manager
+# Copy package files
 COPY package.json pnpm-lock.yaml* ./
+
+# Install dependencies
 RUN corepack enable pnpm && pnpm i --frozen-lockfile
 
-# Rebuild the source code only when needed
-FROM base AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+# Copy source code
 COPY . .
 
 # Build the application
-RUN corepack enable pnpm && pnpm run build
+RUN pnpm run build
 
-# Production image, copy all the files and run the application
-FROM base AS runner
-WORKDIR /app
+# Production stage with nginx
+FROM nginx:alpine AS runner
 
-ENV NODE_ENV=production
-# Disable telemetry during runtime.
-ENV NEXT_TELEMETRY_DISABLED=1
+# Copy built files to nginx html directory
+COPY --from=builder /app/dist /usr/share/nginx/html
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+# Create nginx configuration for SPA
+RUN echo 'server { \
+    listen 3000; \
+    server_name localhost; \
+    root /usr/share/nginx/html; \
+    index index.html; \
+    location / { \
+        try_files $uri $uri/ /index.html; \
+    } \
+    location /assets/ { \
+        expires 1y; \
+        add_header Cache-Control "public, immutable"; \
+    } \
+}' > /etc/nginx/conf.d/default.conf
 
-# Copy the built application
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/package.json ./package.json
-
-# Install serve for serving static files
-RUN corepack enable pnpm && pnpm add serve
-
-USER nextjs
+# Remove default nginx config
+RUN rm /etc/nginx/conf.d/default.conf.bak 2>/dev/null || true
 
 EXPOSE 3000
 
-ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
-
-# Start the application with proper SPA routing support
-CMD ["npx", "serve", "-s", "dist", "-l", "3000", "--single"]
+CMD ["nginx", "-g", "daemon off;"]
 
