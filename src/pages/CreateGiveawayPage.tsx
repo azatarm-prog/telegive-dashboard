@@ -1,10 +1,17 @@
 import React, { useEffect } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { Navigate, useNavigate, Link } from 'react-router-dom';
+import { ArrowLeft, Plus, LogOut, Home, History } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import Header from '@/components/common/Header';
-import Sidebar from '@/components/common/Sidebar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import GiveawayForm from '@/components/giveaway/GiveawayForm';
 import { useGiveaway } from '@/hooks/useGiveaway';
 import { useAuth } from '@/hooks/useAuth';
@@ -12,7 +19,7 @@ import { ROUTES } from '@/utils/constants';
 
 const CreateGiveawayPage: React.FC = () => {
   const navigate = useNavigate();
-  const { account } = useAuth();
+  const { account, logout } = useAuth();
   const { activeGiveaway, fetchActiveGiveaway } = useGiveaway();
 
   useEffect(() => {
@@ -34,13 +41,131 @@ const CreateGiveawayPage: React.FC = () => {
     navigate(-1);
   };
 
+  const handleLogout = () => {
+    logout();
+    window.location.href = '/login';
+  };
+
+  const getInitials = (firstName: string, lastName?: string) => {
+    const first = firstName?.charAt(0)?.toUpperCase() || 'U';
+    const last = lastName?.charAt(0)?.toUpperCase() || '';
+    return first + last;
+  };
+
+  const navigationItems = [
+    {
+      name: 'Dashboard',
+      href: ROUTES.DASHBOARD,
+      icon: Home,
+      current: false,
+    },
+    {
+      name: 'Create Giveaway',
+      href: ROUTES.CREATE_GIVEAWAY,
+      icon: Plus,
+      current: true,
+    },
+    {
+      name: 'History',
+      href: ROUTES.HISTORY,
+      icon: History,
+      current: false,
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="bg-card border-b shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
+            <div className="flex items-center">
+              <h1 className="text-2xl font-bold text-foreground">Telegive Dashboard</h1>
+            </div>
+            
+            {/* User Menu */}
+            <div className="flex items-center space-x-4">
+              <span className="text-sm text-muted-foreground">
+                Welcome back, {account?.first_name || 'User'}!
+              </span>
+              
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback className="bg-primary text-primary-foreground">
+                        {getInitials(account?.first_name || 'User', account?.last_name)}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">
+                        {account?.first_name} {account?.last_name}
+                      </p>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        Bot ID: {account?.id}
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+        </div>
+      </header>
       
       <div className="flex">
-        <aside className="w-64 min-h-screen bg-white border-r">
-          <Sidebar />
+        {/* Sidebar */}
+        <aside className="w-64 min-h-screen bg-card border-r shadow-sm">
+          <div className="p-6">
+            <nav className="space-y-2">
+              {navigationItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className={`
+                      flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors
+                      ${
+                        item.current
+                          ? 'bg-primary/10 text-primary border-r-2 border-primary'
+                          : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                      }
+                    `}
+                  >
+                    <Icon className="mr-3 h-5 w-5" />
+                    {item.name}
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
+
+          {/* Sidebar Footer */}
+          <div className="absolute bottom-0 w-64 p-6 border-t">
+            <div className="flex items-center">
+              <Avatar className="h-8 w-8">
+                <AvatarFallback className="bg-muted text-muted-foreground text-xs">
+                  {getInitials(account?.first_name || 'User', account?.last_name)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="ml-3">
+                <p className="text-sm font-medium text-foreground">
+                  {account?.first_name} {account?.last_name}
+                </p>
+                <p className="text-xs text-muted-foreground">Bot ID: {account?.id}</p>
+              </div>
+            </div>
+          </div>
         </aside>
         
         <main className="flex-1 p-6">
@@ -57,68 +182,13 @@ const CreateGiveawayPage: React.FC = () => {
                 Back
               </Button>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Create Giveaway</h1>
-                <p className="text-gray-600">
-                  Set up a new giveaway for your Telegram channel
-                </p>
+                <h2 className="text-3xl font-bold text-foreground">Create Giveaway</h2>
+                <p className="text-muted-foreground">Set up a new giveaway for your Telegram community</p>
               </div>
             </div>
-
-            {/* Information Alert */}
-            <Alert>
-              <AlertDescription>
-                <strong>Before you start:</strong> Make sure your bot is added to your Telegram channel 
-                as an administrator with permission to post messages and manage the channel.
-              </AlertDescription>
-            </Alert>
 
             {/* Giveaway Form */}
-            <div className="flex justify-center">
-              <GiveawayForm onSuccess={handleSuccess} />
-            </div>
-
-            {/* Help Section */}
-            <div className="max-w-2xl mx-auto">
-              <div className="bg-white rounded-lg border p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  How it works
-                </h3>
-                <div className="space-y-3 text-sm text-gray-600">
-                  <div className="flex items-start space-x-3">
-                    <div className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-medium">
-                      1
-                    </div>
-                    <p>
-                      Fill in the giveaway details including title, description, and number of winners
-                    </p>
-                  </div>
-                  <div className="flex items-start space-x-3">
-                    <div className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-medium">
-                      2
-                    </div>
-                    <p>
-                      Optionally upload an image or video to make your giveaway more engaging
-                    </p>
-                  </div>
-                  <div className="flex items-start space-x-3">
-                    <div className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-medium">
-                      3
-                    </div>
-                    <p>
-                      Click "Publish Giveaway" to post it to your Telegram channel
-                    </p>
-                  </div>
-                  <div className="flex items-start space-x-3">
-                    <div className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-medium">
-                      4
-                    </div>
-                    <p>
-                      Monitor participants and configure finish messages from the dashboard
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <GiveawayForm onSuccess={handleSuccess} />
           </div>
         </main>
       </div>
