@@ -1,16 +1,12 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { ROUTES } from './constants';
 
-// Lazy load components for better performance
-import { lazy } from 'react';
-
-const LoginPage = lazy(() => import('../pages/LoginPage'));
-const DashboardPage = lazy(() => import('../pages/DashboardPage'));
-const CreateGiveawayPage = lazy(() => import('../pages/CreateGiveawayPage'));
-const HistoryPage = lazy(() => import('../pages/HistoryPage'));
-
-// Auth guard component
-const AuthGuard = lazy(() => import('../components/auth/AuthGuard'));
+// Direct imports to avoid dynamic loading issues
+import LoginPage from '../pages/LoginPage';
+import DashboardPage from '../pages/DashboardPage';
+import CreateGiveawayPage from '../pages/CreateGiveawayPage';
+import HistoryPage from '../pages/HistoryPage';
+import AuthGuard from '../components/auth/AuthGuard';
 
 export const router = createBrowserRouter([
   {
