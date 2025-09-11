@@ -7,8 +7,8 @@ const AUTH_SERVICE_URL = import.meta.env.VITE_TELEGIVE_AUTH_URL || 'https://web-
 export class AuthService {
   static async login(data: LoginRequest): Promise<LoginResponse> {
     try {
-      // First try to login with existing bot
-      const loginResponse = await axios.post(`${AUTH_SERVICE_URL}/api/auth/login`, {
+      // Use the correct endpoint: /api/v1/bots/register (handles both login and signup)
+      const response = await axios.post(`${AUTH_SERVICE_URL}/api/v1/bots/register`, {
         bot_token: data.botToken
       }, {
         headers: {
@@ -17,48 +17,45 @@ export class AuthService {
         timeout: 10000,
       });
       
-      // Check if the response has the expected format
-      if (loginResponse.data && loginResponse.data.success && loginResponse.data.token) {
+      // Handle the actual response format from auth service
+      if (response.status === 200 && response.data) {
+        const { bot_id, access_token, message } = response.data;
+        
+        // Create account object from the response
+        const account: Account = {
+          id: parseInt(bot_id),
+          username: `bot_${bot_id}`,
+          first_name: 'Telegram Bot',
+          last_name: '',
+          is_bot: true,
+          can_join_groups: true,
+          can_read_all_group_messages: true,
+          supports_inline_queries: false,
+        };
+        
         // Store auth data
-        localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, loginResponse.data.token);
-        localStorage.setItem(STORAGE_KEYS.USER_ACCOUNT, JSON.stringify(loginResponse.data.account));
-        return loginResponse.data;
+        localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, access_token);
+        localStorage.setItem(STORAGE_KEYS.USER_ACCOUNT, JSON.stringify(account));
+        
+        // Return in the format expected by the frontend
+        return {
+          success: true,
+          token: access_token,
+          account: account,
+          message: message
+        };
       }
       
-      throw new Error(loginResponse.data?.message || 'Login failed');
+      throw new Error('Invalid response format from auth service');
     } catch (error: any) {
-      // If login fails with 401 (invalid credentials), try to register the bot (signup)
-      if (error.response?.status === 401 && error.response?.data?.error_code === 'INVALID_CREDENTIALS') {
-        try {
-          const signupResponse = await axios.post(`${AUTH_SERVICE_URL}/api/auth/signup`, {
-            bot_token: data.botToken
-          }, {
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            timeout: 10000,
-          });
-          
-          if (signupResponse.data && signupResponse.data.success && signupResponse.data.token) {
-            // Store auth data
-            localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, signupResponse.data.token);
-            localStorage.setItem(STORAGE_KEYS.USER_ACCOUNT, JSON.stringify(signupResponse.data.account));
-            return signupResponse.data;
-          }
-          
-          throw new Error(signupResponse.data?.message || 'Registration failed');
-        } catch (signupError: any) {
-          // If signup also fails, provide a clear error message
-          if (signupError.response?.data?.error) {
-            throw new Error(signupError.response.data.error);
-          }
-          throw new Error('Unable to authenticate or register bot. Please check your bot token.');
-        }
+      // Handle specific error cases based on auth service documentation
+      if (error.response?.status === 400) {
+        const errorMessage = error.response.data?.error || 'Authentication failed';
+        throw new Error(errorMessage);
       }
       
-      // For other errors, provide specific error messages
-      if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+      if (error.response?.status === 500) {
+        throw new Error('Authentication service is temporarily unavailable. Please try again later.');
       }
       
       if (error.code === 'ECONNABORTED') {
@@ -69,26 +66,23 @@ export class AuthService {
         throw new Error('Unable to connect to authentication service. Please check your internet connection.');
       }
       
-      throw new Error(error.message || 'Authentication failed');
+      throw new Error(error.response?.data?.error || error.message || 'Authentication failed');
     }
   }
 
   static async validateToken(): Promise<{ valid: boolean; account?: Account }> {
     try {
       const token = this.getStoredToken();
-      if (!token) {
+      const account = this.getStoredAccount();
+      
+      if (!token || !account) {
         return { valid: false };
       }
       
-      const response = await axios.get<{ success: boolean; account: Account }>(`${AUTH_SERVICE_URL}/api/auth/validate`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        timeout: 10000,
-      });
-      
-      return { valid: response.data.success, account: response.data.account };
+      // For now, we'll consider stored tokens as valid since the auth service
+      // doesn't have a separate validation endpoint. In a production environment,
+      // you might want to add a validation endpoint to the auth service.
+      return { valid: true, account: account };
     } catch (error) {
       return { valid: false };
     }
