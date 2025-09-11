@@ -41,7 +41,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
     } catch (err) {
       setFormError('token', {
         type: 'manual',
-        message: err instanceof Error ? err.message : 'Login failed',
+        message: err instanceof Error ? err.message : 'Authentication failed',
       });
     }
   };
@@ -51,9 +51,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
       <div className="max-w-md w-full space-y-8">
         <Card>
           <CardHeader>
-            <CardTitle>Login to Telegive Dashboard</CardTitle>
+            <CardTitle>Access Telegive Dashboard</CardTitle>
             <CardDescription>
-              Enter your bot token to access the giveaway management dashboard
+              Enter your Telegram bot token to login or create your account
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -63,7 +63,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
                 <Input
                   id="token"
                   type="password"
-                  placeholder="Enter your bot token"
+                  placeholder="Enter your bot token (e.g., 123456789:ABCdef...)"
                   {...register('token')}
                   disabled={loading || isSubmitting}
                   data-testid="token-input"
@@ -73,6 +73,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
                     {errors.token.message}
                   </p>
                 )}
+                <p className="text-xs text-muted-foreground">
+                  Don't have a bot? Create one with @BotFather on Telegram
+                </p>
               </div>
 
               {error && (
@@ -87,9 +90,26 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
                 disabled={loading || isSubmitting}
                 data-testid="login-button"
               >
-                {loading || isSubmitting ? 'Logging in...' : 'Login'}
+                {loading || isSubmitting ? 'Authenticating...' : 'Login / Sign Up'}
               </Button>
+              
+              <div className="text-center space-y-2">
+                <p className="text-xs text-muted-foreground">
+                  New users will be automatically registered
+                </p>
+              </div>
             </form>
+            
+            {/* Instructions for new users */}
+            <div className="mt-6 p-4 bg-muted rounded-lg">
+              <h4 className="text-sm font-medium mb-2">How to get a bot token:</h4>
+              <ol className="text-xs text-muted-foreground space-y-1">
+                <li>1. Open Telegram and search for @BotFather</li>
+                <li>2. Send /newbot command</li>
+                <li>3. Choose a name and username for your bot</li>
+                <li>4. Copy the token and paste it above</li>
+              </ol>
+            </div>
           </CardContent>
         </Card>
       </div>
