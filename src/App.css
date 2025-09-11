@@ -40,96 +40,97 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
-/* Dark theme as default */
+/* Manus-inspired color scheme */
 :root {
   --radius: 0.625rem;
-  /* Dark background and foreground */
-  --background: oklch(0.08 0 0);
-  --foreground: oklch(0.95 0 0);
   
-  /* Dark cards */
-  --card: oklch(0.12 0 0);
-  --card-foreground: oklch(0.95 0 0);
+  /* Manus-style backgrounds - lighter grays */
+  --background: #3a3a3a;
+  --foreground: #ffffff;
   
-  /* Dark popovers */
-  --popover: oklch(0.12 0 0);
-  --popover-foreground: oklch(0.95 0 0);
+  /* Cards - slightly lighter than background */
+  --card: #4a4a4a;
+  --card-foreground: #ffffff;
   
-  /* Primary colors - blue accent */
-  --primary: oklch(0.6 0.2 240);
-  --primary-foreground: oklch(0.98 0 0);
+  /* Popovers */
+  --popover: #4a4a4a;
+  --popover-foreground: #ffffff;
+  
+  /* Primary colors - keeping blue accent */
+  --primary: #3b82f6;
+  --primary-foreground: #ffffff;
   
   /* Secondary colors */
-  --secondary: oklch(0.18 0 0);
-  --secondary-foreground: oklch(0.9 0 0);
+  --secondary: #525252;
+  --secondary-foreground: #f5f5f5;
   
   /* Muted colors */
-  --muted: oklch(0.15 0 0);
-  --muted-foreground: oklch(0.65 0 0);
+  --muted: #525252;
+  --muted-foreground: #a3a3a3;
   
   /* Accent colors */
-  --accent: oklch(0.18 0 0);
-  --accent-foreground: oklch(0.9 0 0);
+  --accent: #525252;
+  --accent-foreground: #f5f5f5;
   
   /* Destructive colors */
-  --destructive: oklch(0.65 0.25 25);
+  --destructive: #ef4444;
   
-  /* Border and input colors */
-  --border: oklch(0.25 0 0);
-  --input: oklch(0.15 0 0);
-  --ring: oklch(0.6 0.2 240);
+  /* Border and input colors - subtle */
+  --border: #525252;
+  --input: #404040;
+  --ring: #3b82f6;
   
-  /* Chart colors - vibrant but dark-friendly */
-  --chart-1: oklch(0.6 0.25 260);
-  --chart-2: oklch(0.65 0.2 160);
-  --chart-3: oklch(0.7 0.2 70);
-  --chart-4: oklch(0.6 0.3 300);
-  --chart-5: oklch(0.65 0.25 15);
+  /* Chart colors */
+  --chart-1: #3b82f6;
+  --chart-2: #10b981;
+  --chart-3: #f59e0b;
+  --chart-4: #ef4444;
+  --chart-5: #8b5cf6;
   
-  /* Sidebar colors */
-  --sidebar: oklch(0.1 0 0);
-  --sidebar-foreground: oklch(0.9 0 0);
-  --sidebar-primary: oklch(0.6 0.2 240);
-  --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.15 0 0);
-  --sidebar-accent-foreground: oklch(0.9 0 0);
-  --sidebar-border: oklch(0.2 0 0);
-  --sidebar-ring: oklch(0.6 0.2 240);
+  /* Sidebar colors - matching main theme */
+  --sidebar: #353535;
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #3b82f6;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #454545;
+  --sidebar-accent-foreground: #f5f5f5;
+  --sidebar-border: #4a4a4a;
+  --sidebar-ring: #3b82f6;
 }
 
 /* Light theme override (if needed) */
 .light {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --background: #ffffff;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --primary: #0f172a;
+  --primary-foreground: #f8fafc;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #0f172a;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent: #f1f5f9;
+  --accent-foreground: #0f172a;
+  --destructive: #ef4444;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #94a3b8;
+  --chart-1: #3b82f6;
+  --chart-2: #10b981;
+  --chart-3: #f59e0b;
+  --chart-4: #ef4444;
+  --chart-5: #8b5cf6;
+  --sidebar: #f8fafc;
+  --sidebar-foreground: #0f172a;
+  --sidebar-primary: #0f172a;
+  --sidebar-primary-foreground: #f8fafc;
+  --sidebar-accent: #f1f5f9;
+  --sidebar-accent-foreground: #0f172a;
+  --sidebar-border: #e2e8f0;
+  --sidebar-ring: #94a3b8;
 }
 
 @layer base {
@@ -141,35 +142,44 @@
   }
 }
 
-/* Additional dark theme styling */
+/* Additional styling for Manus-like appearance */
 @layer components {
-  .dark-theme-override {
-    background-color: oklch(0.08 0 0) !important;
-    color: oklch(0.95 0 0) !important;
+  /* Ensure consistent theming */
+  .manus-theme {
+    background-color: var(--background);
+    color: var(--foreground);
   }
   
-  /* Ensure login page has dark background */
-  .min-h-screen {
-    @apply bg-background;
-  }
-  
-  /* Dark scrollbars */
+  /* Subtle scrollbars */
   ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
   }
   
   ::-webkit-scrollbar-track {
-    background: oklch(0.1 0 0);
+    background: #404040;
   }
   
   ::-webkit-scrollbar-thumb {
-    background: oklch(0.3 0 0);
+    background: #606060;
     border-radius: 4px;
   }
   
   ::-webkit-scrollbar-thumb:hover {
-    background: oklch(0.4 0 0);
+    background: #707070;
+  }
+  
+  /* Input focus states */
+  input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+  }
+  
+  /* Button hover states */
+  button:hover {
+    opacity: 0.9;
+    transition: opacity 0.2s ease;
   }
 }
 
