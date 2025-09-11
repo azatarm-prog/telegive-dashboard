@@ -26,10 +26,11 @@ RUN npm install -g serve
 # Copy built files
 COPY --from=builder /app/dist ./dist
 
-# Create a simple startup script
-RUN echo '#!/bin/sh\nserve -s dist -l 3000' > start.sh && chmod +x start.sh
+# Create a health check file
+RUN echo '<!DOCTYPE html><html><head><title>Health Check</title></head><body><h1>OK</h1></body></html>' > ./dist/health.html
 
 EXPOSE 3000
 
-CMD ["./start.sh"]
+# Use serve with proper configuration for SPA
+CMD ["serve", "-s", "dist", "-l", "3000", "--no-clipboard"]
 
