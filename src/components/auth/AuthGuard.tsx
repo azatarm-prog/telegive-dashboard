@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
@@ -9,15 +9,8 @@ interface AuthGuardProps {
 }
 
 const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
-  const { isAuthenticated, loading, validateToken } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
   const location = useLocation();
-
-  useEffect(() => {
-    // Validate token on mount if we think we're authenticated
-    if (isAuthenticated && !loading) {
-      validateToken();
-    }
-  }, [isAuthenticated, loading, validateToken]);
 
   // Show loading spinner while checking authentication
   if (loading) {
