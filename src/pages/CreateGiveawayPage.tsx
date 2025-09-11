@@ -23,15 +23,18 @@ const CreateGiveawayPage: React.FC = () => {
   const { activeGiveaway, fetchActiveGiveaway } = useGiveaway();
 
   useEffect(() => {
-    if (account) {
-      fetchActiveGiveaway(account.id);
-    }
+    // Temporarily disabled to avoid CORS issues with auth service
+    // TODO: Fix CORS configuration on auth service for this domain
+    // if (account) {
+    //   fetchActiveGiveaway(account.id);
+    // }
   }, [account, fetchActiveGiveaway]);
 
   // Redirect if there's already an active giveaway
-  if (activeGiveaway) {
-    return <Navigate to={ROUTES.DASHBOARD} replace />;
-  }
+  // Temporarily disabled due to CORS issues
+  // if (activeGiveaway) {
+  //   return <Navigate to={ROUTES.DASHBOARD} replace />;
+  // }
 
   const handleSuccess = () => {
     navigate(ROUTES.DASHBOARD);
