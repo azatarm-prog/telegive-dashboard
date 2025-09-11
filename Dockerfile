@@ -1,4 +1,4 @@
-# Use Node.js 18 Alpine as base image for building
+# Build stage
 FROM node:18-alpine AS builder
 
 WORKDIR /app
@@ -15,31 +15,21 @@ COPY . .
 # Build the application
 RUN pnpm run build
 
-# Production stage with nginx
-FROM nginx:alpine AS runner
+# Production stage
+FROM node:18-alpine AS runner
 
-# Copy built files to nginx html directory
-COPY --from=builder /app/dist /usr/share/nginx/html
+WORKDIR /app
 
-# Create nginx configuration for SPA
-RUN echo 'server { \
-    listen 3000; \
-    server_name localhost; \
-    root /usr/share/nginx/html; \
-    index index.html; \
-    location / { \
-        try_files $uri $uri/ /index.html; \
-    } \
-    location /assets/ { \
-        expires 1y; \
-        add_header Cache-Control "public, immutable"; \
-    } \
-}' > /etc/nginx/conf.d/default.conf
+# Install serve globally
+RUN npm install -g serve
 
-# Remove default nginx config
-RUN rm /etc/nginx/conf.d/default.conf.bak 2>/dev/null || true
+# Copy built files
+COPY --from=builder /app/dist ./dist
+
+# Create a simple startup script
+RUN echo '#!/bin/sh\nserve -s dist -l 3000' > start.sh && chmod +x start.sh
 
 EXPOSE 3000
 
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["./start.sh"]
 
