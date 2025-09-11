@@ -15,20 +15,17 @@ const giveawaySchema = z.object({
   title: z.string()
     .min(1, 'Title is required')
     .min(3, 'Title must be at least 3 characters')
-    .max(100, 'Title must be less than 100 characters'),
+    .max(255, 'Title must be less than 255 characters'),
   description: z.string()
     .min(1, 'Description is required')
     .min(10, 'Description must be at least 10 characters')
-    .max(1000, 'Description must be less than 1000 characters'),
+    .max(4000, 'Description must be less than 4000 characters'),
   winnerCount: z.coerce.number()
     .min(1, 'Must have at least 1 winner')
     .max(100, 'Cannot have more than 100 winners'),
-  duration: z.coerce.number()
-    .min(1, 'Duration must be at least 1 hour')
-    .max(168, 'Duration cannot exceed 168 hours (1 week)'),
-  channelId: z.string()
-    .min(1, 'Channel ID is required')
-    .regex(/^@[a-zA-Z0-9_]+$/, 'Channel ID must start with @ and contain only letters, numbers, and underscores'),
+  participationButtonText: z.string()
+    .max(100, 'Button text must be less than 100 characters')
+    .optional(),
 });
 
 type GiveawayFormData = z.infer<typeof giveawaySchema>;
@@ -55,8 +52,7 @@ const GiveawayForm: React.FC<GiveawayFormProps> = ({ onSuccess, initialData }) =
       title: initialData?.title || '',
       description: initialData?.description || '',
       winnerCount: initialData?.winnerCount || 1,
-      duration: initialData?.duration || 24,
-      channelId: initialData?.channelId || '',
+      participationButtonText: initialData?.participationButtonText || 'Join Giveaway',
     },
   });
 
@@ -71,19 +67,18 @@ const GiveawayForm: React.FC<GiveawayFormProps> = ({ onSuccess, initialData }) =
 
     try {
       // Call the giveaway service API
-      const response = await fetch(`${import.meta.env.VITE_GIVEAWAY_SERVICE_URL}/api/v1/giveaways`, {
+      const response = await fetch(`${import.meta.env.VITE_TELEGIVE_GIVEAWAY_URL}/api/giveaways/create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${account.access_token}`,
+          // Note: Authentication not required for testing according to API docs
         },
         body: JSON.stringify({
-          bot_id: account.id,
+          account_id: parseInt(account.id),
           title: data.title,
-          description: data.description,
+          main_body: data.description,
           winner_count: data.winnerCount,
-          duration_hours: data.duration,
-          channel_id: data.channelId,
+          participation_button_text: data.participationButtonText || 'Join Giveaway',
         }),
       });
 
@@ -191,7 +186,7 @@ const GiveawayForm: React.FC<GiveawayFormProps> = ({ onSuccess, initialData }) =
               <Textarea
                 id="description"
                 {...register('description')}
-                placeholder="Describe your giveaway, prizes, and rules..."
+                placeholder="Describe your giveaway, prizes, and rules in detail..."
                 rows={4}
                 disabled={isSubmitting || isCreating}
                 className="bg-background"
@@ -199,23 +194,26 @@ const GiveawayForm: React.FC<GiveawayFormProps> = ({ onSuccess, initialData }) =
               {errors.description && (
                 <p className="text-sm text-red-500">{errors.description.message}</p>
               )}
+              <p className="text-xs text-muted-foreground">
+                Detailed description with rules and requirements (10-4000 characters)
+              </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="channelId" className="text-foreground">Telegram Channel ID *</Label>
+              <Label htmlFor="participationButtonText" className="text-foreground">Button Text</Label>
               <Input
-                id="channelId"
+                id="participationButtonText"
                 type="text"
-                {...register('channelId')}
-                placeholder="@your_channel_username"
+                {...register('participationButtonText')}
+                placeholder="Join Giveaway"
                 disabled={isSubmitting || isCreating}
                 className="bg-background"
               />
-              {errors.channelId && (
-                <p className="text-sm text-red-500">{errors.channelId.message}</p>
+              {errors.participationButtonText && (
+                <p className="text-sm text-red-500">{errors.participationButtonText.message}</p>
               )}
               <p className="text-xs text-muted-foreground">
-                Enter your channel username starting with @ (e.g., @mychannel)
+                Custom text for the participation button (max 100 characters)
               </p>
             </div>
           </div>
@@ -227,41 +225,23 @@ const GiveawayForm: React.FC<GiveawayFormProps> = ({ onSuccess, initialData }) =
               Giveaway Settings
             </h3>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="winnerCount" className="text-foreground">Number of Winners *</Label>
-                <Input
-                  id="winnerCount"
-                  type="number"
-                  min="1"
-                  max="100"
-                  {...register('winnerCount')}
-                  disabled={isSubmitting || isCreating}
-                  className="bg-background"
-                />
-                {errors.winnerCount && (
-                  <p className="text-sm text-red-500">{errors.winnerCount.message}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="duration" className="text-foreground">Duration (hours) *</Label>
-                <Input
-                  id="duration"
-                  type="number"
-                  min="1"
-                  max="168"
-                  {...register('duration')}
-                  disabled={isSubmitting || isCreating}
-                  className="bg-background"
-                />
-                {errors.duration && (
-                  <p className="text-sm text-red-500">{errors.duration.message}</p>
-                )}
-                <p className="text-xs text-muted-foreground">
-                  Maximum 168 hours (1 week)
-                </p>
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="winnerCount" className="text-foreground">Number of Winners *</Label>
+              <Input
+                id="winnerCount"
+                type="number"
+                min="1"
+                max="100"
+                {...register('winnerCount')}
+                disabled={isSubmitting || isCreating}
+                className="bg-background"
+              />
+              {errors.winnerCount && (
+                <p className="text-sm text-red-500">{errors.winnerCount.message}</p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                How many winners will be selected for this giveaway
+              </p>
             </div>
           </div>
 
@@ -269,8 +249,8 @@ const GiveawayForm: React.FC<GiveawayFormProps> = ({ onSuccess, initialData }) =
           <Alert>
             <Clock className="h-4 w-4" />
             <AlertDescription>
-              <strong>Before you start:</strong> Make sure your bot is added to your Telegram channel 
-              as an administrator with permission to post messages and manage the channel.
+              <strong>Note:</strong> After creating the giveaway, you'll need to publish it to your Telegram channel. 
+              The giveaway will be in draft status until published. You can only have one active giveaway at a time.
             </AlertDescription>
           </Alert>
 
