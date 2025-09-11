@@ -1,4 +1,3 @@
-import apiClient from './api';
 import { 
   CreateGiveawayRequest, 
   Giveaway, 
@@ -6,23 +5,47 @@ import {
   FinishResult, 
   GiveawayHistoryResponse 
 } from '../types/giveaway';
+import { getServiceUrl } from './serviceConfig';
+import { STORAGE_KEYS } from '../utils/constants';
 
 export class GiveawayService {
+  private static getAuthHeaders() {
+    const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
+    return {
+      'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` })
+    };
+  }
+
   static async createGiveaway(data: CreateGiveawayRequest): Promise<Giveaway> {
     let mediaUrl: string | undefined;
 
-    // Upload media file if provided
+    // Upload media file if provided (this should go to Media Service)
     if (data.mediaFile) {
-      const uploadResponse = await apiClient.uploadFile<{ success: boolean; url: string }>(
-        '/api/media/upload',
-        data.mediaFile
-      );
-      if (uploadResponse.success) {
-        mediaUrl = uploadResponse.url;
+      const mediaServiceUrl = getServiceUrl('MEDIA');
+      const formData = new FormData();
+      formData.append('file', data.mediaFile);
+      
+      const uploadResponse = await fetch(`${mediaServiceUrl}/api/media/upload`, {
+        method: 'POST',
+        headers: {
+          ...(localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN) && { 
+            'Authorization': `Bearer ${localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)}` 
+          })
+        },
+        body: formData
+      });
+      
+      if (uploadResponse.ok) {
+        const result = await uploadResponse.json();
+        if (result.success) {
+          mediaUrl = result.url;
+        }
       }
     }
 
-    // Create giveaway
+    // Create giveaway using Giveaway Service
+    const giveawayServiceUrl = getServiceUrl('GIVEAWAY');
     const giveawayData = {
       title: data.title,
       main_body: data.mainBody,
@@ -30,24 +53,39 @@ export class GiveawayService {
       media_url: mediaUrl,
     };
 
-    const response = await apiClient.post<{ success: boolean; giveaway: Giveaway }>(
-      '/api/giveaways/create',
-      giveawayData
-    );
+    const response = await fetch(`${giveawayServiceUrl}/api/giveaways/create`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(giveawayData)
+    });
 
-    if (!response.success) {
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Failed to create giveaway');
+    }
+
+    const result = await response.json();
+    if (!result.success) {
       throw new Error('Failed to create giveaway');
     }
 
-    return response.giveaway;
+    return result.giveaway;
   }
 
   static async getActiveGiveaway(accountId: number): Promise<Giveaway | null> {
     try {
-      const response = await apiClient.get<{ success: boolean; giveaway: Giveaway | null }>(
-        `/api/giveaways/active/${accountId}`
-      );
-      return response.giveaway;
+      const giveawayServiceUrl = getServiceUrl('GIVEAWAY');
+      const response = await fetch(`${giveawayServiceUrl}/api/giveaways/active/${accountId}`, {
+        method: 'GET',
+        headers: this.getAuthHeaders()
+      });
+
+      if (!response.ok) {
+        return null; // No active giveaway
+      }
+
+      const result = await response.json();
+      return result.giveaway;
     } catch (error) {
       // If no active giveaway, return null
       return null;
@@ -58,30 +96,46 @@ export class GiveawayService {
     giveawayId: number,
     messages: FinishMessages
   ): Promise<void> {
-    const response = await apiClient.put<{ success: boolean }>(
-      `/api/giveaways/${giveawayId}/finish-messages`,
-      {
+    const giveawayServiceUrl = getServiceUrl('GIVEAWAY');
+    const response = await fetch(`${giveawayServiceUrl}/api/giveaways/${giveawayId}/finish-messages`, {
+      method: 'PUT',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({
         conclusion_message: messages.conclusionMessage,
         winner_message: messages.winnerMessage,
         loser_message: messages.loserMessage,
-      }
-    );
+      })
+    });
 
-    if (!response.success) {
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Failed to update finish messages');
+    }
+
+    const result = await response.json();
+    if (!result.success) {
       throw new Error('Failed to update finish messages');
     }
   }
 
   static async finishGiveaway(giveawayId: number): Promise<FinishResult> {
-    const response = await apiClient.post<FinishResult>(
-      `/api/giveaways/${giveawayId}/finish`
-    );
+    const giveawayServiceUrl = getServiceUrl('GIVEAWAY');
+    const response = await fetch(`${giveawayServiceUrl}/api/giveaways/${giveawayId}/finish`, {
+      method: 'POST',
+      headers: this.getAuthHeaders()
+    });
 
-    if (!response.success) {
-      throw new Error(response.message || 'Failed to finish giveaway');
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Failed to finish giveaway');
     }
 
-    return response;
+    const result = await response.json();
+    if (!result.success) {
+      throw new Error(result.message || 'Failed to finish giveaway');
+    }
+
+    return result;
   }
 
   static async getHistory(
@@ -89,27 +143,43 @@ export class GiveawayService {
     page: number = 1,
     limit: number = 20
   ): Promise<GiveawayHistoryResponse> {
-    const response = await apiClient.get<GiveawayHistoryResponse>(
-      `/api/giveaways/history/${accountId}?page=${page}&limit=${limit}`
-    );
+    const giveawayServiceUrl = getServiceUrl('GIVEAWAY');
+    const response = await fetch(`${giveawayServiceUrl}/api/giveaways/history/${accountId}?page=${page}&limit=${limit}`, {
+      method: 'GET',
+      headers: this.getAuthHeaders()
+    });
 
-    if (!response.success) {
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Failed to fetch giveaway history');
+    }
+
+    const result = await response.json();
+    if (!result.success) {
       throw new Error('Failed to fetch giveaway history');
     }
 
-    return response;
+    return result;
   }
 
   static async getGiveawayDetails(giveawayId: number): Promise<Giveaway> {
-    const response = await apiClient.get<{ success: boolean; giveaway: Giveaway }>(
-      `/api/giveaways/${giveawayId}`
-    );
+    const giveawayServiceUrl = getServiceUrl('GIVEAWAY');
+    const response = await fetch(`${giveawayServiceUrl}/api/giveaways/${giveawayId}`, {
+      method: 'GET',
+      headers: this.getAuthHeaders()
+    });
 
-    if (!response.success) {
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Failed to fetch giveaway details');
+    }
+
+    const result = await response.json();
+    if (!result.success) {
       throw new Error('Failed to fetch giveaway details');
     }
 
-    return response.giveaway;
+    return result.giveaway;
   }
 }
 
