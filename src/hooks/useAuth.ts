@@ -2,15 +2,14 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useCallback } from 'react';
 import { RootState, AppDispatch } from '../store';
 import { login, logout, validateToken, clearError } from '../store/slices/authSlice';
-import { LoginRequest } from '../types/auth';
 
 export const useAuth = () => {
   const dispatch = useDispatch<AppDispatch>();
   const authState = useSelector((state: RootState) => state.auth);
 
   const handleLogin = useCallback(
-    async (data: LoginRequest) => {
-      const result = await dispatch(login(data));
+    async (botToken: string) => {
+      const result = await dispatch(login({ botToken }));
       return result;
     },
     [dispatch]
