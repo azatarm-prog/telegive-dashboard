@@ -8,7 +8,7 @@ export class AuthService {
   static async login(data: LoginRequest): Promise<LoginResponse> {
     try {
       // First try to login with existing bot
-      const loginResponse = await axios.post<LoginResponse>(`${AUTH_SERVICE_URL}/api/auth/login`, {
+      const loginResponse = await axios.post(`${AUTH_SERVICE_URL}/api/auth/login`, {
         bot_token: data.botToken
       }, {
         headers: {
@@ -17,19 +17,20 @@ export class AuthService {
         timeout: 10000,
       });
       
-      if (loginResponse.data.success && loginResponse.data.token) {
+      // Check if the response has the expected format
+      if (loginResponse.data && loginResponse.data.success && loginResponse.data.token) {
         // Store auth data
         localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, loginResponse.data.token);
         localStorage.setItem(STORAGE_KEYS.USER_ACCOUNT, JSON.stringify(loginResponse.data.account));
         return loginResponse.data;
       }
       
-      throw new Error(loginResponse.data.message || 'Login failed');
+      throw new Error(loginResponse.data?.message || 'Login failed');
     } catch (error: any) {
-      // If login fails, try to register the bot (signup)
-      if (error.response?.status === 404 || error.response?.status === 401) {
+      // If login fails with 401 (invalid credentials), try to register the bot (signup)
+      if (error.response?.status === 401 && error.response?.data?.error_code === 'INVALID_CREDENTIALS') {
         try {
-          const signupResponse = await axios.post<LoginResponse>(`${AUTH_SERVICE_URL}/api/auth/signup`, {
+          const signupResponse = await axios.post(`${AUTH_SERVICE_URL}/api/auth/signup`, {
             bot_token: data.botToken
           }, {
             headers: {
@@ -38,20 +39,37 @@ export class AuthService {
             timeout: 10000,
           });
           
-          if (signupResponse.data.success && signupResponse.data.token) {
+          if (signupResponse.data && signupResponse.data.success && signupResponse.data.token) {
             // Store auth data
             localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, signupResponse.data.token);
             localStorage.setItem(STORAGE_KEYS.USER_ACCOUNT, JSON.stringify(signupResponse.data.account));
             return signupResponse.data;
           }
           
-          throw new Error(signupResponse.data.message || 'Registration failed');
+          throw new Error(signupResponse.data?.message || 'Registration failed');
         } catch (signupError: any) {
-          throw new Error(signupError.response?.data?.message || signupError.message || 'Authentication failed');
+          // If signup also fails, provide a clear error message
+          if (signupError.response?.data?.error) {
+            throw new Error(signupError.response.data.error);
+          }
+          throw new Error('Unable to authenticate or register bot. Please check your bot token.');
         }
       }
       
-      throw new Error(error.response?.data?.message || error.message || 'Authentication failed');
+      // For other errors, provide specific error messages
+      if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      }
+      
+      if (error.code === 'ECONNABORTED') {
+        throw new Error('Connection timeout. Please try again.');
+      }
+      
+      if (error.message?.includes('Network Error')) {
+        throw new Error('Unable to connect to authentication service. Please check your internet connection.');
+      }
+      
+      throw new Error(error.message || 'Authentication failed');
     }
   }
 
