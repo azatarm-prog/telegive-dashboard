@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Plus, LogOut, User, Home, History, Settings } from 'lucide-react';
+import { Plus, LogOut, User, Home, History, Settings, TrendingUp, Users, Trophy, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,6 +48,42 @@ const DashboardPage: React.FC = () => {
       href: ROUTES.HISTORY,
       icon: History,
       current: location.pathname === ROUTES.HISTORY,
+    },
+  ];
+
+  // Mock stats data - will be replaced with real data later
+  const stats = [
+    {
+      title: 'Active Giveaways',
+      value: '0',
+      description: 'Currently running',
+      icon: TrendingUp,
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-100',
+    },
+    {
+      title: 'Total Participants',
+      value: '0',
+      description: 'All time participants',
+      icon: Users,
+      color: 'text-green-600',
+      bgColor: 'bg-green-100',
+    },
+    {
+      title: 'Winners Selected',
+      value: '0',
+      description: 'Total winners picked',
+      icon: Trophy,
+      color: 'text-yellow-600',
+      bgColor: 'bg-yellow-100',
+    },
+    {
+      title: 'Completed Giveaways',
+      value: '0',
+      description: 'Successfully finished',
+      icon: Calendar,
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-100',
     },
   ];
 
@@ -148,29 +184,120 @@ const DashboardPage: React.FC = () => {
 
         {/* Main Content */}
         <main className="flex-1 p-6">
-          <div className="max-w-7xl mx-auto">
-            <div className="mb-6">
-              <h2 className="text-3xl font-bold text-gray-900">Dashboard</h2>
-              <p className="text-gray-600">Manage your Telegram giveaways</p>
+          <div className="max-w-7xl mx-auto space-y-6">
+            {/* Page Header */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-3xl font-bold text-gray-900">Dashboard</h2>
+                <p className="text-gray-600">Manage your Telegram giveaways and track performance</p>
+              </div>
+              <Link to={ROUTES.CREATE_GIVEAWAY}>
+                <Button size="lg">
+                  <Plus className="mr-2 h-5 w-5" />
+                  Create Giveaway
+                </Button>
+              </Link>
             </div>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Welcome to Telegive Dashboard</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8">
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Get Started</h3>
-                  <p className="text-gray-600 mb-4">Create your first giveaway to engage your Telegram audience!</p>
-                  <Link to={ROUTES.CREATE_GIVEAWAY}>
-                    <Button size="lg">
-                      <Plus className="mr-2 h-5 w-5" />
-                      Create Your First Giveaway
-                    </Button>
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {stats.map((stat) => {
+                const Icon = stat.icon;
+                return (
+                  <Card key={stat.title}>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium text-gray-600">
+                        {stat.title}
+                      </CardTitle>
+                      <div className={`p-2 rounded-full ${stat.bgColor}`}>
+                        <Icon className={`h-4 w-4 ${stat.color}`} />
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
+                      <p className="text-xs text-gray-500 mt-1">{stat.description}</p>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+
+            {/* Main Dashboard Content */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Welcome Card */}
+              <div className="lg:col-span-2">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Welcome to Telegive Dashboard</CardTitle>
+                    <CardDescription>
+                      Start creating engaging giveaways for your Telegram community
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center py-8">
+                      <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+                        <Trophy className="h-8 w-8 text-blue-600" />
+                      </div>
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">Get Started</h3>
+                      <p className="text-gray-600 mb-6">
+                        Create your first giveaway to engage your Telegram audience and grow your community!
+                      </p>
+                      <Link to={ROUTES.CREATE_GIVEAWAY}>
+                        <Button size="lg">
+                          <Plus className="mr-2 h-5 w-5" />
+                          Create Your First Giveaway
+                        </Button>
+                      </Link>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Quick Actions */}
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Quick Actions</CardTitle>
+                    <CardDescription>Common tasks and shortcuts</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <Link to={ROUTES.CREATE_GIVEAWAY} className="block">
+                      <Button variant="outline" className="w-full justify-start">
+                        <Plus className="mr-2 h-4 w-4" />
+                        Create New Giveaway
+                      </Button>
+                    </Link>
+                    <Link to={ROUTES.HISTORY} className="block">
+                      <Button variant="outline" className="w-full justify-start">
+                        <History className="mr-2 h-4 w-4" />
+                        View History
+                      </Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+
+                {/* Tips Card */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Pro Tips</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3 text-sm">
+                    <div className="p-3 bg-blue-50 rounded-lg">
+                      <p className="font-medium text-blue-900">💡 Engagement Tip</p>
+                      <p className="text-blue-700">
+                        Add attractive prizes and clear rules to increase participation rates.
+                      </p>
+                    </div>
+                    <div className="p-3 bg-green-50 rounded-lg">
+                      <p className="font-medium text-green-900">✅ Best Practice</p>
+                      <p className="text-green-700">
+                        Set appropriate duration and winner count for your community size.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
           </div>
         </main>
       </div>
