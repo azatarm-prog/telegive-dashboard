@@ -38,10 +38,24 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
     try {
       await login(data.token);
       onSuccess?.();
-    } catch (err) {
+    } catch (err: any) {
+      // Provide more specific error messages
+      let errorMessage = 'Authentication failed';
+      
+      if (err.payload) {
+        errorMessage = err.payload;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      // Check if it's a network error
+      if (errorMessage.includes('Network Error') || errorMessage.includes('timeout')) {
+        errorMessage = 'Unable to connect to authentication service. Please check your internet connection and try again.';
+      }
+      
       setFormError('token', {
         type: 'manual',
-        message: err instanceof Error ? err.message : 'Authentication failed',
+        message: errorMessage,
       });
     }
   };
@@ -53,7 +67,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
           <CardHeader>
             <CardTitle>Access Telegive Dashboard</CardTitle>
             <CardDescription>
-              Enter your Telegram bot token to login or create your account
+              Enter your Telegram bot token. If this is your first time, we'll automatically register your bot.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -95,7 +109,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
               
               <div className="text-center space-y-2">
                 <p className="text-xs text-muted-foreground">
-                  New users will be automatically registered
+                  Existing users will be logged in • New bots will be automatically registered
                 </p>
               </div>
             </form>
