@@ -74,6 +74,9 @@ const GiveawayForm: React.FC<GiveawayFormProps> = ({ onSuccess, initialData }) =
       console.log('Using giveaway URL:', giveawayUrl);
       console.log('Account data:', account);
       console.log('Account ID being sent:', parseInt(account.id));
+      console.log('Account ID type:', typeof account.id);
+      console.log('Account ID as string:', account.id);
+      console.log('Account ID as number:', parseInt(account.id));
       
       const requestBody = {
         account_id: parseInt(account.id),
@@ -84,13 +87,17 @@ const GiveawayForm: React.FC<GiveawayFormProps> = ({ onSuccess, initialData }) =
       };
       
       console.log('Request body:', requestBody);
+      console.log('Request body JSON:', JSON.stringify(requestBody, null, 2));
       
       // Call the giveaway service API
+      const authToken = localStorage.getItem('auth_token');
+      console.log('Auth token available:', !!authToken);
+      
       const response = await fetch(`${giveawayUrl}/api/giveaways/create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          // Note: Authentication not required for testing according to API docs
+          ...(authToken && { 'Authorization': `Bearer ${authToken}` })
         },
         body: JSON.stringify(requestBody),
       });
