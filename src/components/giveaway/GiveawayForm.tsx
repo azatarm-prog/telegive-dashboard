@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Gift, Users, Clock, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { getServiceUrl, logServiceUrls } from '@/services/serviceConfig';
+import { STORAGE_KEYS } from '@/utils/constants';
 
 const giveawaySchema = z.object({
   title: z.string()
@@ -90,8 +91,9 @@ const GiveawayForm: React.FC<GiveawayFormProps> = ({ onSuccess, initialData }) =
       console.log('Request body JSON:', JSON.stringify(requestBody, null, 2));
       
       // Call the giveaway service API
-      const authToken = localStorage.getItem('auth_token');
+      const authToken = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
       console.log('Auth token available:', !!authToken);
+      console.log('Auth token value:', authToken ? 'Token exists' : 'No token found');
       
       const response = await fetch(`${giveawayUrl}/api/giveaways/create`, {
         method: 'POST',
