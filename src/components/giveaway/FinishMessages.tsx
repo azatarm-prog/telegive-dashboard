@@ -17,6 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { useGiveaway } from '@/hooks/useGiveaway';
 import { Giveaway } from '@/types/giveaway';
 
 const finishMessagesSchema = z.object({
@@ -43,6 +44,9 @@ interface FinishMessagesProps {
 const FinishMessages: React.FC<FinishMessagesProps> = ({ giveaway }) => {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [isFinishing, setIsFinishing] = useState(false);
+  const [finishError, setFinishError] = useState<string | null>(null);
+  
+  const { updateFinishMessages, finishGiveaway: finishGiveawayAction, clearActiveGiveaway } = useGiveaway();
 
   const {
     register,
@@ -82,28 +86,40 @@ const FinishMessages: React.FC<FinishMessagesProps> = ({ giveaway }) => {
   const handleFinishGiveaway = async (data: FinishMessagesData) => {
     try {
       setIsFinishing(true);
+      setFinishError(null);
       
-      // Simulate API call to finish giveaway
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Here you would call the actual API to:
-      // 1. Random winner selection from all participants
-      // 2. Winner/loser message delivery to ALL participants
-      // 3. Public conclusion message posted to channel with results link
-      // 4. Giveaway status changed to finished
-      // 5. Move to history section
-      
-      console.log('Finishing giveaway with messages:', data);
+      console.log('Starting giveaway finish process...');
       console.log('Giveaway ID:', giveaway.id);
+      console.log('Messages:', data);
       
-      // Redirect to history or dashboard after finishing
-      // navigate(ROUTES.HISTORY);
+      // Step 1: Update finish messages
+      console.log('Step 1: Updating finish messages...');
+      await updateFinishMessages(Number(giveaway.id), {
+        conclusionMessage: data.conclusionMessage,
+        winnerMessage: data.winnerMessage,
+        loserMessage: data.loserMessage,
+      });
       
-    } catch (error) {
+      // Step 2: Finish the giveaway
+      console.log('Step 2: Finishing giveaway...');
+      const result = await finishGiveawayAction(Number(giveaway.id));
+      
+      console.log('Giveaway finished successfully:', result);
+      
+      // Step 3: Clear active giveaway from state
+      clearActiveGiveaway();
+      
+      // Close dialog
+      setShowConfirmDialog(false);
+      
+      // Show success message or redirect
+      alert('Giveaway finished successfully! Winners have been selected and messages sent.');
+      
+    } catch (error: any) {
       console.error('Failed to finish giveaway:', error);
+      setFinishError(error.message || 'Failed to finish giveaway. Please try again.');
     } finally {
       setIsFinishing(false);
-      setShowConfirmDialog(false);
     }
   };
 
@@ -284,6 +300,14 @@ const FinishMessages: React.FC<FinishMessagesProps> = ({ giveaway }) => {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
+            {finishError && (
+              <Alert>
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription className="text-destructive">
+                  {finishError}
+                </AlertDescription>
+              </Alert>
+            )}
             <div className="bg-muted p-4 rounded-lg">
               <h4 className="font-medium mb-2">What will happen:</h4>
               <ul className="text-sm space-y-1 text-muted-foreground">
@@ -298,7 +322,10 @@ const FinishMessages: React.FC<FinishMessagesProps> = ({ giveaway }) => {
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => setShowConfirmDialog(false)}
+              onClick={() => {
+                setShowConfirmDialog(false);
+                setFinishError(null);
+              }}
               disabled={isFinishing}
             >
               Cancel
