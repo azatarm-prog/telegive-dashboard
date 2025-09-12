@@ -1,320 +1,318 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { CheckCircle, XCircle, Trophy, AlertTriangle } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Giveaway } from '@/types/giveaway';
 
 const finishMessagesSchema = z.object({
+  conclusionMessage: z.string()
+    .min(1, 'Conclusion message is required')
+    .min(10, 'Conclusion message must be at least 10 characters')
+    .max(1000, 'Conclusion message must be less than 1000 characters'),
   winnerMessage: z.string()
     .min(1, 'Winner message is required')
     .min(10, 'Winner message must be at least 10 characters')
-    .max(500, 'Winner message must be less than 500 characters'),
-  participantMessage: z.string()
-    .min(1, 'Participant message is required')
-    .min(10, 'Participant message must be at least 10 characters')
-    .max(500, 'Participant message must be less than 500 characters'),
-  notificationSettings: z.object({
-    sendToWinners: z.boolean().default(true),
-    sendToParticipants: z.boolean().default(true),
-    sendToChannel: z.boolean().default(false),
-    delayMinutes: z.number().min(0).max(60).default(0),
-  }),
-  messageFormat: z.object({
-    includeGiveawayTitle: z.boolean().default(true),
-    includeParticipantCount: z.boolean().default(true),
-    includeTimestamp: z.boolean().default(false),
-    customSignature: z.string().max(100).optional(),
-  }),
+    .max(1000, 'Winner message must be less than 1000 characters'),
+  loserMessage: z.string()
+    .min(1, 'Loser message is required')
+    .min(10, 'Loser message must be at least 10 characters')
+    .max(1000, 'Loser message must be less than 1000 characters'),
 });
 
 type FinishMessagesData = z.infer<typeof finishMessagesSchema>;
 
 interface FinishMessagesProps {
-  onFinish?: (messages: FinishMessagesData) => void;
-  initialData?: Partial<FinishMessagesData>;
-  giveawayTitle?: string;
+  giveaway: Giveaway;
 }
 
-const FinishMessages: React.FC<FinishMessagesProps> = ({ 
-  onFinish, 
-  initialData,
-  giveawayTitle = "Your Giveaway"
-}) => {
+const FinishMessages: React.FC<FinishMessagesProps> = ({ giveaway }) => {
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [isFinishing, setIsFinishing] = useState(false);
+
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors, isValid },
     watch,
-    setValue,
   } = useForm<FinishMessagesData>({
     resolver: zodResolver(finishMessagesSchema),
+    mode: 'onChange',
     defaultValues: {
-      winnerMessage: initialData?.winnerMessage || '🎉 Congratulations! You won our giveaway!',
-      participantMessage: initialData?.participantMessage || 'Thank you for participating in our giveaway!',
-      notificationSettings: {
-        sendToWinners: initialData?.notificationSettings?.sendToWinners ?? true,
-        sendToParticipants: initialData?.notificationSettings?.sendToParticipants ?? true,
-        sendToChannel: initialData?.notificationSettings?.sendToChannel ?? false,
-        delayMinutes: initialData?.notificationSettings?.delayMinutes ?? 0,
-      },
-      messageFormat: {
-        includeGiveawayTitle: initialData?.messageFormat?.includeGiveawayTitle ?? true,
-        includeParticipantCount: initialData?.messageFormat?.includeParticipantCount ?? true,
-        includeTimestamp: initialData?.messageFormat?.includeTimestamp ?? false,
-        customSignature: initialData?.messageFormat?.customSignature || '',
-      },
+      conclusionMessage: '🎉 Giveaway Results! Congratulations to our winners! Click the link below to see if you won: {RESULTS_LINK}',
+      winnerMessage: '🎉 Congratulations! You won our amazing giveaway! Contact @admin to claim your prize within 48 hours.',
+      loserMessage: 'Thank you for participating! Better luck next time. Stay tuned for more exciting giveaways!',
     },
   });
 
-  const watchedSettings = watch('notificationSettings');
-  const watchedFormat = watch('messageFormat');
+  const watchedMessages = watch();
+  const allMessagesComplete = isValid && 
+    watchedMessages.conclusionMessage?.length >= 10 &&
+    watchedMessages.winnerMessage?.length >= 10 &&
+    watchedMessages.loserMessage?.length >= 10;
 
-  const onFormSubmit = async (data: FinishMessagesData) => {
+  const getMessageStatus = (message: string, error?: any) => {
+    if (error) {
+      return { icon: XCircle, color: 'text-destructive', text: 'Required' };
+    }
+    if (message && message.length >= 10) {
+      return { icon: CheckCircle, color: 'text-green-600', text: 'Completed' };
+    }
+    return { icon: XCircle, color: 'text-destructive', text: 'Required' };
+  };
+
+  const conclusionStatus = getMessageStatus(watchedMessages.conclusionMessage, errors.conclusionMessage);
+  const winnerStatus = getMessageStatus(watchedMessages.winnerMessage, errors.winnerMessage);
+  const loserStatus = getMessageStatus(watchedMessages.loserMessage, errors.loserMessage);
+
+  const handleFinishGiveaway = async (data: FinishMessagesData) => {
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-      onFinish?.(data);
+      setIsFinishing(true);
+      
+      // Simulate API call to finish giveaway
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Here you would call the actual API to:
+      // 1. Random winner selection from all participants
+      // 2. Winner/loser message delivery to ALL participants
+      // 3. Public conclusion message posted to channel with results link
+      // 4. Giveaway status changed to finished
+      // 5. Move to history section
+      
+      console.log('Finishing giveaway with messages:', data);
+      console.log('Giveaway ID:', giveaway.id);
+      
+      // Redirect to history or dashboard after finishing
+      // navigate(ROUTES.HISTORY);
+      
     } catch (error) {
-      console.error('Failed to save finish messages:', error);
+      console.error('Failed to finish giveaway:', error);
+    } finally {
+      setIsFinishing(false);
+      setShowConfirmDialog(false);
     }
   };
 
-  const insertTemplate = (field: 'winnerMessage' | 'participantMessage', template: string) => {
-    const currentValue = watch(field);
-    setValue(field, currentValue + template);
+  const onSubmit = (data: FinishMessagesData) => {
+    setShowConfirmDialog(true);
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Finish Messages Configuration</CardTitle>
-        <CardDescription>
-          Configure personalized messages for winners and participants with advanced options
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-6">
-          {/* Message Content */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Message Content</h3>
-            
+    <div className="space-y-6">
+      {/* Real-Time Statistics */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Trophy className="mr-2 h-5 w-5" />
+            Real-Time Statistics
+          </CardTitle>
+          <CardDescription>
+            Monitor your giveaway performance in real-time
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="text-center p-4 bg-blue-50 dark:bg-blue-950 rounded-lg">
+              <div className="text-2xl font-bold text-blue-600">{giveaway.participant_count}</div>
+              <div className="text-sm text-blue-800 dark:text-blue-200">Total Participants</div>
+              <div className="text-xs text-muted-foreground">All users who clicked participate</div>
+            </div>
+            <div className="text-center p-4 bg-green-50 dark:bg-green-950 rounded-lg">
+              <div className="text-2xl font-bold text-green-600">{Math.floor(giveaway.participant_count * 0.8)}</div>
+              <div className="text-sm text-green-800 dark:text-green-200">Captcha Completed</div>
+              <div className="text-xs text-muted-foreground">Users who completed verification</div>
+            </div>
+            <div className="text-center p-4 bg-yellow-50 dark:bg-yellow-950 rounded-lg">
+              <div className="text-2xl font-bold text-yellow-600">{Math.floor(giveaway.participant_count * 0.2)}</div>
+              <div className="text-sm text-yellow-800 dark:text-yellow-200">Pending Captcha</div>
+              <div className="text-xs text-muted-foreground">Users still completing verification</div>
+            </div>
+            <div className="text-center p-4 bg-purple-50 dark:bg-purple-950 rounded-lg">
+              <div className="text-2xl font-bold text-purple-600">2m ago</div>
+              <div className="text-sm text-purple-800 dark:text-purple-200">Recent Activity</div>
+              <div className="text-xs text-muted-foreground">Latest participation timestamp</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Finish Messages Configuration */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Define Finish Messages</CardTitle>
+          <CardDescription>
+            Configure messages that will be sent when the giveaway is finished. All messages are required before finishing.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            {/* Conclusion Message */}
             <div className="space-y-2">
-              <Label htmlFor="winnerMessage">Winner Message *</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="conclusionMessage" className="text-base font-medium">
+                  Conclusion Message *
+                </Label>
+                <div className="flex items-center space-x-2">
+                  <conclusionStatus.icon className={`h-4 w-4 ${conclusionStatus.color}`} />
+                  <Badge variant={conclusionStatus.text === 'Completed' ? 'default' : 'destructive'}>
+                    {conclusionStatus.text}
+                  </Badge>
+                </div>
+              </div>
+              <Textarea
+                id="conclusionMessage"
+                {...register('conclusionMessage')}
+                placeholder="🎉 Giveaway Results! Congratulations to our winners! Click the link below to see if you won: {RESULTS_LINK}"
+                rows={4}
+                className="resize-none"
+              />
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>Use {'{RESULTS_LINK}'} where results link should appear</span>
+                <span>{watchedMessages.conclusionMessage?.length || 0}/1000 characters</span>
+              </div>
+              {errors.conclusionMessage && (
+                <p className="text-sm text-destructive">{errors.conclusionMessage.message}</p>
+              )}
+            </div>
+
+            {/* Winner Message */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="winnerMessage" className="text-base font-medium">
+                  Winner Message *
+                </Label>
+                <div className="flex items-center space-x-2">
+                  <winnerStatus.icon className={`h-4 w-4 ${winnerStatus.color}`} />
+                  <Badge variant={winnerStatus.text === 'Completed' ? 'default' : 'destructive'}>
+                    {winnerStatus.text}
+                  </Badge>
+                </div>
+              </div>
               <Textarea
                 id="winnerMessage"
                 {...register('winnerMessage')}
-                placeholder="🎉 Congratulations! You won our giveaway!"
+                placeholder="🎉 Congratulations! You won our amazing giveaway! Contact @admin to claim your prize within 48 hours."
                 rows={4}
-                disabled={isSubmitting}
-                data-testid="winner-message-input"
+                className="resize-none"
               />
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>Personalized message sent to winners</span>
+                <span>{watchedMessages.winnerMessage?.length || 0}/1000 characters</span>
+              </div>
               {errors.winnerMessage && (
-                <p className="text-sm text-red-600" data-testid="winner-message-error">
-                  {errors.winnerMessage.message}
-                </p>
+                <p className="text-sm text-destructive">{errors.winnerMessage.message}</p>
               )}
-              <div className="flex flex-wrap gap-2 mt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => insertTemplate('winnerMessage', ' {username}')}
-                >
-                  + Username
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => insertTemplate('winnerMessage', ' {giveaway_title}')}
-                >
-                  + Giveaway Title
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => insertTemplate('winnerMessage', ' {prize}')}
-                >
-                  + Prize
-                </Button>
-              </div>
             </div>
 
+            {/* Loser Message */}
             <div className="space-y-2">
-              <Label htmlFor="participantMessage">Participant Message *</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="loserMessage" className="text-base font-medium">
+                  Loser Message *
+                </Label>
+                <div className="flex items-center space-x-2">
+                  <loserStatus.icon className={`h-4 w-4 ${loserStatus.color}`} />
+                  <Badge variant={loserStatus.text === 'Completed' ? 'default' : 'destructive'}>
+                    {loserStatus.text}
+                  </Badge>
+                </div>
+              </div>
               <Textarea
-                id="participantMessage"
-                {...register('participantMessage')}
-                placeholder="Thank you for participating in our giveaway!"
+                id="loserMessage"
+                {...register('loserMessage')}
+                placeholder="Thank you for participating! Better luck next time. Stay tuned for more exciting giveaways!"
                 rows={4}
-                disabled={isSubmitting}
-                data-testid="participant-message-input"
+                className="resize-none"
               />
-              {errors.participantMessage && (
-                <p className="text-sm text-red-600" data-testid="participant-message-error">
-                  {errors.participantMessage.message}
-                </p>
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>Personalized message sent to non-winners</span>
+                <span>{watchedMessages.loserMessage?.length || 0}/1000 characters</span>
+              </div>
+              {errors.loserMessage && (
+                <p className="text-sm text-destructive">{errors.loserMessage.message}</p>
               )}
-              <div className="flex flex-wrap gap-2 mt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => insertTemplate('participantMessage', ' {username}')}
-                >
-                  + Username
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => insertTemplate('participantMessage', ' {giveaway_title}')}
-                >
-                  + Giveaway Title
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => insertTemplate('participantMessage', ' {total_participants}')}
-                >
-                  + Total Participants
-                </Button>
-              </div>
             </div>
-          </div>
 
-          {/* Notification Settings */}
+            {/* Status Alert */}
+            <Alert>
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                {allMessagesComplete 
+                  ? "✅ All messages completed. Ready to finish giveaway."
+                  : "❌ Complete all messages to finish the giveaway."
+                }
+              </AlertDescription>
+            </Alert>
+
+            {/* Finish Button */}
+            <Button
+              type="submit"
+              size="lg"
+              className="w-full"
+              disabled={!allMessagesComplete}
+            >
+              {allMessagesComplete 
+                ? "🏁 Finish Giveaway"
+                : "🏁 Finish Giveaway (Complete messages first)"
+              }
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      {/* Confirmation Dialog */}
+      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Finish Giveaway</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to finish this giveaway? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
           <div className="space-y-4">
-            <h3 className="text-lg font-medium">Notification Settings</h3>
-            
-            <div className="space-y-3">
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="sendToWinners"
-                  {...register('notificationSettings.sendToWinners')}
-                  disabled={isSubmitting}
-                />
-                <Label htmlFor="sendToWinners" className="text-sm font-medium">
-                  Send notifications to winners
-                </Label>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="sendToParticipants"
-                  {...register('notificationSettings.sendToParticipants')}
-                  disabled={isSubmitting}
-                />
-                <Label htmlFor="sendToParticipants" className="text-sm font-medium">
-                  Send notifications to all participants
-                </Label>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="sendToChannel"
-                  {...register('notificationSettings.sendToChannel')}
-                  disabled={isSubmitting}
-                />
-                <Label htmlFor="sendToChannel" className="text-sm font-medium">
-                  Post results to channel
-                </Label>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="delayMinutes">Delay notifications (minutes)</Label>
-                <Input
-                  id="delayMinutes"
-                  type="number"
-                  {...register('notificationSettings.delayMinutes', { valueAsNumber: true })}
-                  min="0"
-                  max="60"
-                  disabled={isSubmitting}
-                  data-testid="delay-input"
-                />
-                {errors.notificationSettings?.delayMinutes && (
-                  <p className="text-sm text-red-600">
-                    {errors.notificationSettings.delayMinutes.message}
-                  </p>
-                )}
-              </div>
+            <div className="bg-muted p-4 rounded-lg">
+              <h4 className="font-medium mb-2">What will happen:</h4>
+              <ul className="text-sm space-y-1 text-muted-foreground">
+                <li>1. Random winner selection from all participants</li>
+                <li>2. Winner/loser message delivery to ALL participants</li>
+                <li>3. Public conclusion message posted to channel with results link</li>
+                <li>4. Giveaway status changed to finished</li>
+                <li>5. Move to history section</li>
+              </ul>
             </div>
           </div>
-
-          {/* Message Format */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Message Format Options</h3>
-            
-            <div className="space-y-3">
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="includeGiveawayTitle"
-                  {...register('messageFormat.includeGiveawayTitle')}
-                  disabled={isSubmitting}
-                />
-                <Label htmlFor="includeGiveawayTitle" className="text-sm font-medium">
-                  Include giveaway title in messages
-                </Label>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="includeParticipantCount"
-                  {...register('messageFormat.includeParticipantCount')}
-                  disabled={isSubmitting}
-                />
-                <Label htmlFor="includeParticipantCount" className="text-sm font-medium">
-                  Include total participant count
-                </Label>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="includeTimestamp"
-                  {...register('messageFormat.includeTimestamp')}
-                  disabled={isSubmitting}
-                />
-                <Label htmlFor="includeTimestamp" className="text-sm font-medium">
-                  Include timestamp in messages
-                </Label>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="customSignature">Custom signature (optional)</Label>
-                <Input
-                  id="customSignature"
-                  type="text"
-                  {...register('messageFormat.customSignature')}
-                  placeholder="e.g., - Your Brand Team"
-                  disabled={isSubmitting}
-                  data-testid="signature-input"
-                />
-                {errors.messageFormat?.customSignature && (
-                  <p className="text-sm text-red-600">
-                    {errors.messageFormat.customSignature.message}
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={isSubmitting}
-            data-testid="save-messages-button"
-          >
-            {isSubmitting ? 'Saving Messages...' : 'Save Finish Messages'}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowConfirmDialog(false)}
+              disabled={isFinishing}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSubmit(handleFinishGiveaway)}
+              disabled={isFinishing}
+            >
+              {isFinishing ? 'Finishing...' : 'Confirm Finish'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 };
 

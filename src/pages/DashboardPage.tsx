@@ -44,6 +44,12 @@ const DashboardPage: React.FC = () => {
       current: location.pathname === ROUTES.CREATE_GIVEAWAY,
     },
     {
+      name: 'Active Giveaway',
+      href: ROUTES.ACTIVE_GIVEAWAY,
+      icon: Trophy,
+      current: location.pathname === ROUTES.ACTIVE_GIVEAWAY,
+    },
+    {
       name: 'History',
       href: ROUTES.HISTORY,
       icon: History,

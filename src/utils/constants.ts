@@ -36,6 +36,7 @@ export const ROUTES = {
   LOGIN: '/login',
   DASHBOARD: '/dashboard',
   CREATE_GIVEAWAY: '/create-giveaway',
+  ACTIVE_GIVEAWAY: '/active-giveaway',
   HISTORY: '/history',
 } as const;
 

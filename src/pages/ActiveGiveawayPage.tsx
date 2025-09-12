@@ -1,0 +1,56 @@
+import React from 'react';
+import { ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import Header from '@/components/common/Header';
+import Sidebar from '@/components/common/Sidebar';
+import ActiveGiveaway from '@/components/giveaway/ActiveGiveaway';
+import { useNavigate } from 'react-router-dom';
+
+const ActiveGiveawayPage: React.FC = () => {
+  const navigate = useNavigate();
+
+  const handleGoBack = () => {
+    navigate(-1);
+  };
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Header />
+      
+      <div className="flex">
+        <aside className="w-64 min-h-screen bg-card border-r shadow-sm">
+          <Sidebar />
+        </aside>
+        
+        <main className="flex-1 p-6">
+          <div className="max-w-6xl mx-auto space-y-6">
+            {/* Page Header */}
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleGoBack}
+                className="flex items-center"
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back
+              </Button>
+              <div>
+                <h1 className="text-3xl font-bold text-foreground">Active Giveaway</h1>
+                <p className="text-muted-foreground">
+                  Monitor and manage your active giveaway
+                </p>
+              </div>
+            </div>
+
+            {/* Active Giveaway Component */}
+            <ActiveGiveaway />
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+};
+
+export default ActiveGiveawayPage;
+
