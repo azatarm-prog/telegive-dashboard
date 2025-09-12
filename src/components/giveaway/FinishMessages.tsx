@@ -130,52 +130,45 @@ const FinishMessages: React.FC<FinishMessagesProps> = ({ giveaway }) => {
   return (
     <div className="space-y-6">
       {/* Real-Time Statistics */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Trophy className="mr-2 h-5 w-5" />
-            Real-Time Statistics
-          </CardTitle>
-          <CardDescription>
-            Monitor your giveaway performance in real-time
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="text-center p-4 bg-blue-50 dark:bg-blue-950 rounded-lg">
-              <div className="text-2xl font-bold text-blue-600">{giveaway.participant_count}</div>
-              <div className="text-sm text-blue-800 dark:text-blue-200">Total Participants</div>
-              <div className="text-xs text-muted-foreground">All users who clicked participate</div>
-            </div>
-            <div className="text-center p-4 bg-green-50 dark:bg-green-950 rounded-lg">
-              <div className="text-2xl font-bold text-green-600">{Math.floor(giveaway.participant_count * 0.8)}</div>
-              <div className="text-sm text-green-800 dark:text-green-200">Captcha Completed</div>
-              <div className="text-xs text-muted-foreground">Users who completed verification</div>
-            </div>
-            <div className="text-center p-4 bg-yellow-50 dark:bg-yellow-950 rounded-lg">
-              <div className="text-2xl font-bold text-yellow-600">{Math.floor(giveaway.participant_count * 0.2)}</div>
-              <div className="text-sm text-yellow-800 dark:text-yellow-200">Pending Captcha</div>
-              <div className="text-xs text-muted-foreground">Users still completing verification</div>
-            </div>
-            <div className="text-center p-4 bg-purple-50 dark:bg-purple-950 rounded-lg">
-              <div className="text-2xl font-bold text-purple-600">2m ago</div>
-              <div className="text-sm text-purple-800 dark:text-purple-200">Recent Activity</div>
-              <div className="text-xs text-muted-foreground">Latest participation timestamp</div>
-            </div>
+      <div>
+        <h4 className="font-medium text-foreground mb-4 flex items-center">
+          <Trophy className="mr-2 h-5 w-5" />
+          Real-Time Statistics
+        </h4>
+        <p className="text-sm text-muted-foreground mb-4">
+          Monitor your giveaway performance in real-time
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="text-center p-4 bg-blue-50 dark:bg-blue-950 rounded-lg">
+            <div className="text-2xl font-bold text-blue-600">{giveaway.participant_count}</div>
+            <div className="text-sm text-blue-800 dark:text-blue-200">Total Participants</div>
+            <div className="text-xs text-muted-foreground">All users who clicked participate</div>
           </div>
-        </CardContent>
-      </Card>
+          <div className="text-center p-4 bg-green-50 dark:bg-green-950 rounded-lg">
+            <div className="text-2xl font-bold text-green-600">{Math.floor(giveaway.participant_count * 0.8)}</div>
+            <div className="text-sm text-green-800 dark:text-green-200">Captcha Completed</div>
+            <div className="text-xs text-muted-foreground">Users who completed verification</div>
+          </div>
+          <div className="text-center p-4 bg-yellow-50 dark:bg-yellow-950 rounded-lg">
+            <div className="text-2xl font-bold text-yellow-600">{Math.floor(giveaway.participant_count * 0.2)}</div>
+            <div className="text-sm text-yellow-800 dark:text-yellow-200">Pending Captcha</div>
+            <div className="text-xs text-muted-foreground">Users still completing verification</div>
+          </div>
+          <div className="text-center p-4 bg-purple-50 dark:bg-purple-950 rounded-lg">
+            <div className="text-2xl font-bold text-purple-600">2m ago</div>
+            <div className="text-sm text-purple-800 dark:text-purple-200">Recent Activity</div>
+            <div className="text-xs text-muted-foreground">Latest participation timestamp</div>
+          </div>
+        </div>
+      </div>
 
       {/* Finish Messages Configuration */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Define Finish Messages</CardTitle>
-          <CardDescription>
-            Configure messages that will be sent when the giveaway is finished. All messages are required before finishing.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <div>
+        <h4 className="font-medium text-foreground mb-2">Define Finish Messages</h4>
+        <p className="text-sm text-muted-foreground mb-4">
+          Configure messages that will be sent when the giveaway is finished. All messages are required before finishing.
+        </p>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             {/* Conclusion Message */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
@@ -287,61 +280,60 @@ const FinishMessages: React.FC<FinishMessagesProps> = ({ giveaway }) => {
               }
             </Button>
           </form>
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Confirmation Dialog */}
-      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirm Finish Giveaway</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to finish this giveaway? This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            {finishError && (
-              <Alert>
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription className="text-destructive">
-                  {finishError}
-                </AlertDescription>
-              </Alert>
-            )}
-            <div className="bg-muted p-4 rounded-lg">
-              <h4 className="font-medium mb-2">What will happen:</h4>
-              <ul className="text-sm space-y-1 text-muted-foreground">
-                <li>1. Random winner selection from all participants</li>
-                <li>2. Winner/loser message delivery to ALL participants</li>
-                <li>3. Public conclusion message posted to channel with results link</li>
-                <li>4. Giveaway status changed to finished</li>
-                <li>5. Move to history section</li>
-              </ul>
+        {/* Confirmation Dialog */}
+        <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Confirm Finish Giveaway</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to finish this giveaway? This action cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              {finishError && (
+                <Alert>
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription className="text-destructive">
+                    {finishError}
+                  </AlertDescription>
+                </Alert>
+              )}
+              <div className="bg-muted p-4 rounded-lg">
+                <h4 className="font-medium mb-2">What will happen:</h4>
+                <ul className="text-sm space-y-1 text-muted-foreground">
+                  <li>1. Random winner selection from all participants</li>
+                  <li>2. Winner/loser message delivery to ALL participants</li>
+                  <li>3. Public conclusion message posted to channel with results link</li>
+                  <li>4. Giveaway status changed to finished</li>
+                  <li>5. Move to history section</li>
+                </ul>
+              </div>
             </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setShowConfirmDialog(false);
-                setFinishError(null);
-              }}
-              disabled={isFinishing}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSubmit(handleFinishGiveaway)}
-              disabled={isFinishing}
-            >
-              {isFinishing ? 'Finishing...' : 'Confirm Finish'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-};
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowConfirmDialog(false);
+                  setFinishError(null);
+                }}
+                disabled={isFinishing}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSubmit(handleFinishGiveaway)}
+                disabled={isFinishing}
+              >
+                {isFinishing ? 'Finishing...' : 'Confirm Finish'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+    );
+  };
 
 export default FinishMessages;
 
