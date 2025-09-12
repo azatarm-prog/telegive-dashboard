@@ -23,16 +23,18 @@ const CreateGiveawayPage: React.FC = () => {
   const { activeGiveaway, fetchActiveGiveaway } = useGiveaway();
 
   useEffect(() => {
-    // Re-enabled after fixing service routing - now calls correct Giveaway Service
-    if (account) {
-      fetchActiveGiveaway(account.id);
-    }
+    // Temporarily disabled again - causing navigation issues due to account validation failures
+    // Will re-enable once Auth Service account validation is fixed
+    // if (account) {
+    //   fetchActiveGiveaway(account.id);
+    // }
   }, [account, fetchActiveGiveaway]);
 
   // Redirect if there's already an active giveaway
-  if (activeGiveaway) {
-    return <Navigate to={ROUTES.DASHBOARD} replace />;
-  }
+  // Temporarily disabled due to account validation issues
+  // if (activeGiveaway) {
+  //   return <Navigate to={ROUTES.DASHBOARD} replace />;
+  // }
 
   const handleSuccess = () => {
     navigate(ROUTES.DASHBOARD);
