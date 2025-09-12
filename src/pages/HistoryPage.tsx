@@ -14,11 +14,11 @@ const HistoryPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Header />
       
       <div className="flex">
-        <aside className="w-64 min-h-screen bg-white border-r">
+        <aside className="w-64 min-h-screen bg-card border-r shadow-sm">
           <Sidebar />
         </aside>
         
@@ -37,8 +37,8 @@ const HistoryPage: React.FC = () => {
                 Back
               </Button>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Giveaway History</h1>
-                <p className="text-gray-600">
+                <h1 className="text-3xl font-bold text-foreground">Giveaway History</h1>
+                <p className="text-muted-foreground">
                   View and analyze your past giveaways
                 </p>
               </div>

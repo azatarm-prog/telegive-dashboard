@@ -53,7 +53,7 @@ const GiveawayHistory: React.FC = () => {
     return (
       <Card>
         <CardContent className="p-6 text-center">
-          <div className="text-red-500 mb-4">
+          <div className="text-destructive mb-4">
             Error loading history: {historyError}
           </div>
           <Button onClick={() => {
@@ -71,11 +71,11 @@ const GiveawayHistory: React.FC = () => {
     return (
       <Card>
         <CardContent className="p-6 text-center">
-          <Trophy className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+          <Trophy className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+          <h3 className="text-lg font-medium text-foreground mb-2">
             No Giveaway History
           </h3>
-          <p className="text-gray-500">
+          <p className="text-muted-foreground">
             Your completed giveaways will appear here
           </p>
         </CardContent>
@@ -144,7 +144,7 @@ const GiveawayHistoryItem: React.FC<GiveawayHistoryItemProps> = ({
     <Card data-testid="history-item">
       <Collapsible open={isExpanded} onOpenChange={onToggleExpanded}>
         <CollapsibleTrigger asChild>
-          <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors">
+          <CardHeader className="cursor-pointer hover:bg-accent transition-colors">
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-2">
@@ -165,7 +165,7 @@ const GiveawayHistoryItem: React.FC<GiveawayHistoryItemProps> = ({
                 <CardDescription>
                   {truncateText(giveaway.main_body, 100)}
                 </CardDescription>
-                <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
+                <div className="flex items-center space-x-4 mt-2 text-sm text-muted-foreground">
                   <div className="flex items-center">
                     <Calendar className="h-4 w-4 mr-1" />
                     {formatDate(giveaway.created_at)}
@@ -190,25 +190,25 @@ const GiveawayHistoryItem: React.FC<GiveawayHistoryItemProps> = ({
               {/* Detailed Information */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <h4 className="font-medium text-gray-900 mb-2">Giveaway Details</h4>
+                  <h4 className="font-medium text-foreground mb-2">Giveaway Details</h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Status:</span>
+                      <span className="text-muted-foreground">Status:</span>
                       <Badge className={statusColor} variant="outline">
                         {statusText}
                       </Badge>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Duration:</span>
+                      <span className="text-muted-foreground">Duration:</span>
                       <span>{duration}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Created:</span>
+                      <span className="text-muted-foreground">Created:</span>
                       <span>{formatDate(giveaway.created_at)}</span>
                     </div>
                     {giveaway.finished_at && (
                       <div className="flex justify-between">
-                        <span className="text-gray-500">Finished:</span>
+                        <span className="text-muted-foreground">Finished:</span>
                         <span>{formatDate(giveaway.finished_at)}</span>
                       </div>
                     )}
@@ -216,18 +216,18 @@ const GiveawayHistoryItem: React.FC<GiveawayHistoryItemProps> = ({
                 </div>
 
                 <div>
-                  <h4 className="font-medium text-gray-900 mb-2">Statistics</h4>
+                  <h4 className="font-medium text-foreground mb-2">Statistics</h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Total Participants:</span>
+                      <span className="text-muted-foreground">Total Participants:</span>
                       <span className="font-medium">{giveaway.participant_count}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Winners Selected:</span>
+                      <span className="text-muted-foreground">Winners Selected:</span>
                       <span className="font-medium">{giveaway.winner_count}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Success Rate:</span>
+                      <span className="text-muted-foreground">Success Rate:</span>
                       <span className="font-medium">
                         {giveaway.participant_count > 0 
                           ? `${((giveaway.winner_count / giveaway.participant_count) * 100).toFixed(1)}%`
@@ -241,8 +241,8 @@ const GiveawayHistoryItem: React.FC<GiveawayHistoryItemProps> = ({
 
               {/* Full Message */}
               <div>
-                <h4 className="font-medium text-gray-900 mb-2">Full Message</h4>
-                <div className="bg-gray-50 rounded-lg p-4">
+                <h4 className="font-medium text-foreground mb-2">Full Message</h4>
+                <div className="bg-muted rounded-lg p-4">
                   <p className="text-sm whitespace-pre-wrap">
                     {giveaway.main_body}
                   </p>
@@ -252,7 +252,7 @@ const GiveawayHistoryItem: React.FC<GiveawayHistoryItemProps> = ({
               {/* Media */}
               {giveaway.media_url && (
                 <div>
-                  <h4 className="font-medium text-gray-900 mb-2">Media</h4>
+                  <h4 className="font-medium text-foreground mb-2">Media</h4>
                   <MediaPreview
                     url={giveaway.media_url}
                     type={giveaway.media_type || 'image/jpeg'}
@@ -264,7 +264,7 @@ const GiveawayHistoryItem: React.FC<GiveawayHistoryItemProps> = ({
               {/* Participants */}
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h4 className="font-medium text-gray-900">Participants</h4>
+                  <h4 className="font-medium text-foreground">Participants</h4>
                   <Button
                     variant="outline"
                     size="sm"
