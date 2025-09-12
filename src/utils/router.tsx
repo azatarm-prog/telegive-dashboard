@@ -5,7 +5,6 @@ import { ROUTES } from './constants';
 import LoginPage from '../pages/LoginPage';
 import DashboardPage from '../pages/DashboardPage';
 import CreateGiveawayPage from '../pages/CreateGiveawayPage';
-import ActiveGiveawayPage from '../pages/ActiveGiveawayPage';
 import HistoryPage from '../pages/HistoryPage';
 import AuthGuard from '../components/auth/AuthGuard';
 
@@ -31,14 +30,6 @@ export const router = createBrowserRouter([
     element: (
       <AuthGuard>
         <CreateGiveawayPage />
-      </AuthGuard>
-    ),
-  },
-  {
-    path: ROUTES.ACTIVE_GIVEAWAY,
-    element: (
-      <AuthGuard>
-        <ActiveGiveawayPage />
       </AuthGuard>
     ),
   },
