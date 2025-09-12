@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import GiveawayForm from '@/components/giveaway/GiveawayForm';
+import DefaultSettingsPanel from '@/components/giveaway/DefaultSettingsPanel';
 import { useGiveaway } from '@/hooks/useGiveaway';
 import { useAuth } from '@/hooks/useAuth';
 import { ROUTES } from '@/utils/constants';
@@ -172,7 +173,7 @@ const CreateGiveawayPage: React.FC = () => {
         </aside>
         
         <main className="flex-1 p-6">
-          <div className="max-w-4xl mx-auto space-y-6">
+          <div className="max-w-7xl mx-auto space-y-6">
             {/* Page Header */}
             <div className="flex items-center space-x-4">
               <Button
@@ -190,8 +191,19 @@ const CreateGiveawayPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Giveaway Form */}
-            <GiveawayForm onSuccess={handleSuccess} />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Giveaway Form */}
+              <div className="lg:col-span-2">
+                <GiveawayForm onSuccess={handleSuccess} />
+              </div>
+
+              {/* Default Settings Panel */}
+              <div className="lg:col-span-1">
+                <DefaultSettingsPanel 
+                  channelName={account?.channelName || '@yourchannel'}
+                />
+              </div>
+            </div>
           </div>
         </main>
       </div>

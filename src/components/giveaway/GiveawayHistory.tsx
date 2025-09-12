@@ -7,6 +7,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import ParticipantList from '@/components/participants/ParticipantList';
 import MediaPreview from '@/components/media/MediaPreview';
+import EnhancedParticipantDetails from './EnhancedParticipantDetails';
 import { useGiveaway } from '@/hooks/useGiveaway';
 import { useAuth } from '@/hooks/useAuth';
 import { formatDate, formatDuration, getStatusColor, getStatusText, truncateText } from '@/utils/formatting';
