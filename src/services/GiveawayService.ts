@@ -120,22 +120,54 @@ export class GiveawayService {
 
   static async finishGiveaway(giveawayId: number): Promise<FinishResult> {
     const giveawayServiceUrl = getServiceUrl('GIVEAWAY');
-    const response = await fetch(`${giveawayServiceUrl}/api/giveaways/${giveawayId}/finish`, {
-      method: 'POST',
-      headers: this.getAuthHeaders()
-    });
+    const url = `${giveawayServiceUrl}/api/giveaways/${giveawayId}/finish`;
+    
+    console.log('🔄 Making API call to finish giveaway...');
+    console.log('URL:', url);
+    console.log('Giveaway ID:', giveawayId);
+    console.log('Headers:', this.getAuthHeaders());
+    
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: this.getAuthHeaders()
+      });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || 'Failed to finish giveaway');
+      console.log('📡 API Response Status:', response.status);
+      console.log('📡 API Response OK:', response.ok);
+
+      if (!response.ok) {
+        let errorData;
+        try {
+          errorData = await response.json();
+          console.error('❌ API Error Response:', errorData);
+        } catch (parseError) {
+          console.error('❌ Failed to parse error response:', parseError);
+          errorData = { error: `HTTP ${response.status}: ${response.statusText}` };
+        }
+        throw new Error(errorData.error || errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      let result;
+      try {
+        result = await response.json();
+        console.log('✅ API Success Response:', result);
+      } catch (parseError) {
+        console.error('❌ Failed to parse success response:', parseError);
+        throw new Error('Invalid response format from server');
+      }
+
+      if (!result.success) {
+        console.error('❌ API returned success=false:', result);
+        throw new Error(result.message || result.error || 'Failed to finish giveaway');
+      }
+
+      console.log('✅ Giveaway finished successfully via API');
+      return result;
+    } catch (error: any) {
+      console.error('❌ finishGiveaway API call failed:', error);
+      throw error;
     }
-
-    const result = await response.json();
-    if (!result.success) {
-      throw new Error(result.message || 'Failed to finish giveaway');
-    }
-
-    return result;
   }
 
   static async getHistory(

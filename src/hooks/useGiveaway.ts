@@ -11,6 +11,7 @@ import {
   clearHistoryError,
   updateActiveGiveawayParticipantCount,
   setActiveGiveawayMessagesReady,
+  setActiveGiveaway,
   clearActiveGiveaway,
 } from '../store/slices/giveawaySlice';
 import { CreateGiveawayRequest, FinishMessages } from '../types/giveaway';
@@ -85,6 +86,10 @@ export const useGiveaway = () => {
     dispatch(clearActiveGiveaway());
   }, [dispatch]);
 
+  const handleSetActiveGiveaway = useCallback((giveaway: any) => {
+    dispatch(setActiveGiveaway(giveaway));
+  }, [dispatch]);
+
   return {
     ...giveawayState,
     createGiveaway: handleCreateGiveaway,
@@ -96,6 +101,7 @@ export const useGiveaway = () => {
     clearHistoryError: handleClearHistoryError,
     updateParticipantCount: handleUpdateParticipantCount,
     setMessagesReady: handleSetMessagesReady,
+    setActiveGiveaway: handleSetActiveGiveaway,
     clearActiveGiveaway: handleClearActiveGiveaway,
   };
 };

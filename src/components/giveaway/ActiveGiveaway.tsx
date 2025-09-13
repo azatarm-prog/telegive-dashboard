@@ -81,7 +81,11 @@ const ActiveGiveaway: React.FC = () => {
   };
 
   const handleFinishGiveaway = async (data: FinishMessagesData) => {
-    if (!activeGiveaway) return;
+    if (!activeGiveaway) {
+      console.error('No active giveaway found');
+      setFinishError('No active giveaway found');
+      return;
+    }
     
     try {
       setIsFinishing(true);
@@ -93,32 +97,51 @@ const ActiveGiveaway: React.FC = () => {
       
       // Step 1: Update finish messages
       console.log('Step 1: Updating finish messages...');
-      await updateFinishMessages(Number(activeGiveaway.id), {
-        conclusionMessage: data.conclusionMessage,
-        winnerMessage: data.winnerMessage,
-        loserMessage: data.loserMessage,
-      });
+      try {
+        await updateFinishMessages(Number(activeGiveaway.id), {
+          conclusionMessage: data.conclusionMessage,
+          winnerMessage: data.winnerMessage,
+          loserMessage: data.loserMessage,
+        });
+        console.log('✅ Finish messages updated successfully');
+      } catch (messageError: any) {
+        console.error('❌ Failed to update finish messages:', messageError);
+        throw new Error(`Failed to update finish messages: ${messageError.message}`);
+      }
       
       // Step 2: Finish the giveaway
       console.log('Step 2: Finishing giveaway...');
-      const result = await finishGiveawayAction(Number(activeGiveaway.id));
-      
-      console.log('Giveaway finished successfully:', result);
+      try {
+        const result = await finishGiveawayAction(Number(activeGiveaway.id));
+        console.log('✅ Giveaway finished successfully:', result);
+      } catch (finishError: any) {
+        console.error('❌ Failed to finish giveaway:', finishError);
+        throw new Error(`Failed to finish giveaway: ${finishError.message}`);
+      }
       
       // Close dialog first
       setShowConfirmDialog(false);
       
       // Show success message
-      alert('Giveaway finished successfully! Winners have been selected and messages sent.');
+      alert('✅ Giveaway finished successfully! Winners have been selected and messages sent.');
       
-      // Step 3: Clear active giveaway from state after a small delay to prevent race conditions
+      // Step 3: Clear active giveaway from state immediately
+      console.log('Step 3: Clearing active giveaway from state...');
+      clearActiveGiveaway();
+      console.log('✅ Active giveaway cleared from state');
+      
+      // Also force a page refresh to ensure clean state
       setTimeout(() => {
-        clearActiveGiveaway();
-      }, 100);
+        console.log('🔄 Refreshing page to ensure clean state...');
+        window.location.reload();
+      }, 1000);
       
     } catch (error: any) {
-      console.error('Failed to finish giveaway:', error);
+      console.error('❌ Failed to finish giveaway:', error);
       setFinishError(error.message || 'Failed to finish giveaway. Please try again.');
+      
+      // Don't clear the giveaway if there was an error
+      console.log('⚠️ Keeping giveaway active due to error');
     } finally {
       setIsFinishing(false);
     }

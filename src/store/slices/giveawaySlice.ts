@@ -100,6 +100,9 @@ const giveawaySlice = createSlice({
         state.activeGiveaway.messages_ready_for_finish = action.payload;
       }
     },
+    setActiveGiveaway: (state, action: PayloadAction<any>) => {
+      state.activeGiveaway = action.payload;
+    },
     clearActiveGiveaway: (state) => {
       state.activeGiveaway = null;
     },
@@ -198,6 +201,7 @@ export const {
   clearHistoryError,
   updateActiveGiveawayParticipantCount,
   setActiveGiveawayMessagesReady,
+  setActiveGiveaway,
   clearActiveGiveaway,
 } = giveawaySlice.actions;
 
