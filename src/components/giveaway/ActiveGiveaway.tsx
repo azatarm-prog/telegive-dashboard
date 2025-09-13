@@ -196,8 +196,31 @@ const ActiveGiveaway: React.FC = () => {
     );
   }
 
-  const statusColor = getStatusColor(activeGiveaway?.status || 'unknown', activeGiveaway?.is_published);
-  const statusText = getStatusText(activeGiveaway?.status || 'unknown', activeGiveaway?.is_published);
+  // Determine if giveaway is actually published
+  // Fallback: if participant_count is 0 and giveaway has been active for more than 5 minutes, likely unpublished
+  const isActuallyPublished = () => {
+    if (activeGiveaway?.is_published === false) return false;
+    if (activeGiveaway?.is_published === true) return true;
+    
+    // Fallback logic: if no participants after being "active" for a while, likely unpublished
+    if (activeGiveaway?.participant_count === 0 && activeGiveaway?.created_at) {
+      const createdTime = new Date(activeGiveaway.created_at).getTime();
+      const now = new Date().getTime();
+      const minutesActive = (now - createdTime) / (1000 * 60);
+      
+      // If active for more than 5 minutes with 0 participants, likely unpublished
+      if (minutesActive > 5) {
+        return false;
+      }
+    }
+    
+    // Default to published if we can't determine otherwise
+    return true;
+  };
+
+  const actuallyPublished = isActuallyPublished();
+  const statusColor = getStatusColor(activeGiveaway?.status || 'unknown', actuallyPublished);
+  const statusText = getStatusText(activeGiveaway?.status || 'unknown', actuallyPublished);
   const duration = formatDuration(activeGiveaway?.created_at, activeGiveaway?.finished_at);
 
   const conclusionStatus = getMessageStatus(watchedMessages.conclusionMessage, errors.conclusionMessage);
@@ -233,7 +256,7 @@ const ActiveGiveaway: React.FC = () => {
             </div>
             <div className="flex items-center space-x-2">
               {/* Status Badge or Try Publishing Again Button */}
-              {activeGiveaway?.status === 'active' && activeGiveaway?.is_published === false ? (
+              {activeGiveaway?.status === 'active' && !actuallyPublished ? (
                 <Button
                   onClick={handleTryPublishAgain}
                   variant="outline"
@@ -248,7 +271,7 @@ const ActiveGiveaway: React.FC = () => {
                 </Badge>
               )}
               
-              {isConnected && activeGiveaway?.status === 'active' && activeGiveaway?.is_published !== false && (
+              {isConnected && activeGiveaway?.status === 'active' && actuallyPublished && (
                 <Badge variant="outline" className="text-green-600 border-green-600">
                   Live Updates
                 </Badge>
@@ -473,7 +496,7 @@ const ActiveGiveaway: React.FC = () => {
           )}
 
           {/* Publication Required Message */}
-          {activeGiveaway?.status === 'active' && activeGiveaway?.is_published === false && (
+          {activeGiveaway?.status === 'active' && !actuallyPublished && (
             <div className="border-t pt-6">
               <Alert className="border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950">
                 <AlertTriangle className="h-4 w-4 text-orange-600" />
