@@ -114,31 +114,46 @@ const ActiveGiveaway: React.FC = () => {
       try {
         const result = await finishGiveawayAction(Number(activeGiveaway.id));
         console.log('✅ Giveaway finished successfully:', result);
+        
+        // Close dialog first
+        setShowConfirmDialog(false);
+        
+        // Show success message
+        alert('✅ Giveaway finished successfully! Winners have been selected and messages sent.');
+        
+        // Step 3: Clear active giveaway from state immediately
+        console.log('Step 3: Clearing active giveaway from state...');
+        clearActiveGiveaway();
+        console.log('✅ Active giveaway cleared from state');
+        
+        // Also force a page refresh to ensure clean state
+        setTimeout(() => {
+          console.log('🔄 Refreshing page to ensure clean state...');
+          window.location.reload();
+        }, 1000);
+        
       } catch (finishError: any) {
         console.error('❌ Failed to finish giveaway:', finishError);
-        throw new Error(`Failed to finish giveaway: ${finishError.message}`);
+        
+        // Handle specific error cases with user-friendly messages
+        if (finishError.message?.includes('must be published') || finishError.message?.includes('CANNOT_FINISH')) {
+          setFinishError('This giveaway cannot be finished at this time. Please try again later or contact support if the issue persists.');
+        } else {
+          setFinishError(`Failed to finish giveaway: ${finishError.message}`);
+        }
+        
+        // Don't clear the giveaway if there was an error
+        console.log('⚠️ Keeping giveaway active due to error');
+        throw finishError; // Re-throw to prevent success actions
       }
       
-      // Close dialog first
-      setShowConfirmDialog(false);
-      
-      // Show success message
-      alert('✅ Giveaway finished successfully! Winners have been selected and messages sent.');
-      
-      // Step 3: Clear active giveaway from state immediately
-      console.log('Step 3: Clearing active giveaway from state...');
-      clearActiveGiveaway();
-      console.log('✅ Active giveaway cleared from state');
-      
-      // Also force a page refresh to ensure clean state
-      setTimeout(() => {
-        console.log('🔄 Refreshing page to ensure clean state...');
-        window.location.reload();
-      }, 1000);
-      
     } catch (error: any) {
-      console.error('❌ Failed to finish giveaway:', error);
-      setFinishError(error.message || 'Failed to finish giveaway. Please try again.');
+      console.error('❌ Overall finish process failed:', error);
+      
+      // Ensure error is displayed to user
+      if (!finishError) {
+        setFinishError(error.message || 'Failed to finish giveaway. Please try again.');
+      }
       
       // Don't clear the giveaway if there was an error
       console.log('⚠️ Keeping giveaway active due to error');
@@ -181,13 +196,25 @@ const ActiveGiveaway: React.FC = () => {
     );
   }
 
-  const statusColor = getStatusColor(activeGiveaway?.status || 'unknown');
-  const statusText = getStatusText(activeGiveaway?.status || 'unknown');
+  const statusColor = getStatusColor(activeGiveaway?.status || 'unknown', activeGiveaway?.is_published);
+  const statusText = getStatusText(activeGiveaway?.status || 'unknown', activeGiveaway?.is_published);
   const duration = formatDuration(activeGiveaway?.created_at, activeGiveaway?.finished_at);
 
   const conclusionStatus = getMessageStatus(watchedMessages.conclusionMessage, errors.conclusionMessage);
   const winnerStatus = getMessageStatus(watchedMessages.winnerMessage, errors.winnerMessage);
   const loserStatus = getMessageStatus(watchedMessages.loserMessage, errors.loserMessage);
+
+  const handleTryPublishAgain = async () => {
+    if (!activeGiveaway) return;
+    
+    try {
+      // TODO: Implement republish functionality
+      console.log('Attempting to republish giveaway:', activeGiveaway.id);
+      alert('Republishing functionality will be implemented soon.');
+    } catch (error) {
+      console.error('Failed to republish giveaway:', error);
+    }
+  };
 
   return (
     <div className="space-y-6" data-testid="active-giveaway">
@@ -205,10 +232,23 @@ const ActiveGiveaway: React.FC = () => {
               </CardDescription>
             </div>
             <div className="flex items-center space-x-2">
-              <Badge className={statusColor}>
-                {statusText}
-              </Badge>
-              {isConnected && activeGiveaway?.status === 'active' && (
+              {/* Status Badge or Try Publishing Again Button */}
+              {activeGiveaway?.status === 'active' && activeGiveaway?.is_published === false ? (
+                <Button
+                  onClick={handleTryPublishAgain}
+                  variant="outline"
+                  size="sm"
+                  className="text-orange-600 border-orange-600 hover:bg-orange-50"
+                >
+                  📤 Try Publishing Again
+                </Button>
+              ) : (
+                <Badge className={statusColor}>
+                  {statusText}
+                </Badge>
+              )}
+              
+              {isConnected && activeGiveaway?.status === 'active' && activeGiveaway?.is_published !== false && (
                 <Badge variant="outline" className="text-green-600 border-green-600">
                   Live Updates
                 </Badge>
@@ -293,8 +333,8 @@ const ActiveGiveaway: React.FC = () => {
             </div>
           )}
 
-          {/* Integrated Finish Messages Configuration */}
-          {activeGiveaway?.status === 'active' && (
+          {/* Integrated Finish Messages Configuration - Only for published giveaways */}
+          {activeGiveaway?.status === 'active' && activeGiveaway?.is_published !== false && (
             <div className="border-t pt-6">
               <div className="space-y-6">
                 <div>
@@ -403,20 +443,45 @@ const ActiveGiveaway: React.FC = () => {
                     </AlertDescription>
                   </Alert>
 
+                  {/* Error Display */}
+                  {finishError && (
+                    <Alert className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950">
+                      <AlertTriangle className="h-4 w-4 text-red-600" />
+                      <AlertDescription className="text-red-800 dark:text-red-200">
+                        {finishError}
+                      </AlertDescription>
+                    </Alert>
+                  )}
+
                   {/* Finish Button */}
                   <Button
                     type="submit"
                     size="lg"
                     className="w-full"
-                    disabled={!allMessagesComplete}
+                    disabled={!allMessagesComplete || isFinishing}
                   >
-                    {allMessagesComplete 
-                      ? "🏁 Finish Giveaway"
-                      : "🏁 Finish Giveaway (Complete messages first)"
+                    {isFinishing 
+                      ? "🔄 Finishing Giveaway..."
+                      : allMessagesComplete 
+                        ? "🏁 Finish Giveaway"
+                        : "🏁 Finish Giveaway (Complete messages first)"
                     }
                   </Button>
                 </form>
               </div>
+            </div>
+          )}
+
+          {/* Publication Required Message */}
+          {activeGiveaway?.status === 'active' && activeGiveaway?.is_published === false && (
+            <div className="border-t pt-6">
+              <Alert className="border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950">
+                <AlertTriangle className="h-4 w-4 text-orange-600" />
+                <AlertDescription className="text-orange-800 dark:text-orange-200">
+                  <strong>📤 Publication Required:</strong> This giveaway needs to be published to your Telegram channel before you can finish it. 
+                  Click "Try Publishing Again" to republish.
+                </AlertDescription>
+              </Alert>
             </div>
           )}
         </CardContent>
@@ -440,6 +505,7 @@ const ActiveGiveaway: React.FC = () => {
                 </AlertDescription>
               </Alert>
             )}
+            
             <div className="bg-muted p-4 rounded-lg">
               <h4 className="font-medium mb-2">What will happen:</h4>
               <ul className="text-sm space-y-1 text-muted-foreground">

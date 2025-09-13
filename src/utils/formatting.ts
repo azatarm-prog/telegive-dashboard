@@ -50,23 +50,35 @@ export const formatDuration = (startDate: string, endDate?: string): string => {
   }
 };
 
-export const getStatusColor = (status: string): string => {
+export const getStatusColor = (status: string, isPublished?: boolean): string => {
   switch (status) {
     case 'active':
-      return 'text-green-600 bg-green-100';
+      return isPublished !== false ? 'text-green-600 bg-green-100' : 'text-orange-600 bg-orange-100';
     case 'finished':
       return 'text-gray-600 bg-gray-100';
+    case 'draft':
+      return 'text-blue-600 bg-blue-100';
+    case 'publishing':
+      return 'text-yellow-600 bg-yellow-100';
+    case 'publish_failed':
+      return 'text-red-600 bg-red-100';
     default:
       return 'text-gray-600 bg-gray-100';
   }
 };
 
-export const getStatusText = (status: string): string => {
+export const getStatusText = (status: string, isPublished?: boolean): string => {
   switch (status) {
     case 'active':
-      return 'Active';
+      return isPublished !== false ? 'Active' : 'Not Published';
     case 'finished':
       return 'Finished';
+    case 'draft':
+      return 'Draft';
+    case 'publishing':
+      return 'Publishing...';
+    case 'publish_failed':
+      return 'Publish Failed';
     default:
       return 'Unknown';
   }
