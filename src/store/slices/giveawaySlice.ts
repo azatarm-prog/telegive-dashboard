@@ -45,6 +45,18 @@ export const fetchActiveGiveaway = createAsyncThunk(
   }
 );
 
+export const publishGiveaway = createAsyncThunk(
+  'giveaway/publish',
+  async (giveawayId: number, { rejectWithValue }) => {
+    try {
+      const result = await GiveawayService.publishGiveaway(giveawayId);
+      return { giveawayId, result };
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || error.message || 'Failed to publish giveaway');
+    }
+  }
+);
+
 export const updateFinishMessages = createAsyncThunk(
   'giveaway/updateFinishMessages',
   async ({ giveawayId, messages }: { giveawayId: number; messages: FinishMessages }, { rejectWithValue }) => {
@@ -134,6 +146,24 @@ const giveawaySlice = createSlice({
         state.error = null;
       })
       .addCase(fetchActiveGiveaway.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      // Publish giveaway
+      .addCase(publishGiveaway.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(publishGiveaway.fulfilled, (state, action) => {
+        state.loading = false;
+        if (state.activeGiveaway && state.activeGiveaway.id === action.payload.giveawayId) {
+          state.activeGiveaway.is_published = true;
+          // Reset participant count to 0 as it will start fresh after republishing
+          state.activeGiveaway.participant_count = 0;
+        }
+        state.error = null;
+      })
+      .addCase(publishGiveaway.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       })

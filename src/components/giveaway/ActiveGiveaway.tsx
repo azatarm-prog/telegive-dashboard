@@ -46,8 +46,11 @@ const ActiveGiveaway: React.FC = () => {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [isFinishing, setIsFinishing] = useState(false);
   const [finishError, setFinishError] = useState<string | null>(null);
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [publishError, setPublishError] = useState<string | null>(null);
+  const [publishSuccess, setPublishSuccess] = useState(false);
   
-  const { updateFinishMessages, finishGiveaway: finishGiveawayAction, clearActiveGiveaway } = useGiveaway();
+  const { updateFinishMessages, finishGiveaway: finishGiveawayAction, clearActiveGiveaway, publishGiveaway } = useGiveaway();
 
   const {
     register,
@@ -230,12 +233,39 @@ const ActiveGiveaway: React.FC = () => {
   const handleTryPublishAgain = async () => {
     if (!activeGiveaway) return;
     
+    setIsPublishing(true);
+    setPublishError(null);
+    setPublishSuccess(false);
+    
     try {
-      // TODO: Implement republish functionality
-      console.log('Attempting to republish giveaway:', activeGiveaway.id);
-      alert('Republishing functionality will be implemented soon.');
-    } catch (error) {
-      console.error('Failed to republish giveaway:', error);
+      console.log('🔄 Starting giveaway republishing process...');
+      console.log('Giveaway ID:', activeGiveaway.id);
+      
+      const result = await publishGiveaway(activeGiveaway.id);
+      
+      if (result.type === 'giveaway/publish/fulfilled') {
+        console.log('✅ Giveaway published successfully!');
+        setPublishError(null);
+        setPublishSuccess(true);
+        
+        // Auto-hide success message after 5 seconds
+        setTimeout(() => setPublishSuccess(false), 5000);
+        
+        // The Redux store should already be updated via the fulfilled action
+        // The UI will automatically reflect the updated status
+      } else {
+        console.error('❌ Publishing failed:', result);
+        const errorMessage = result.payload || 'Failed to publish giveaway';
+        setPublishError(errorMessage);
+        setPublishSuccess(false);
+      }
+    } catch (error: any) {
+      console.error('❌ Publishing error:', error);
+      const errorMessage = error.message || 'Failed to publish giveaway';
+      setPublishError(errorMessage);
+      setPublishSuccess(false);
+    } finally {
+      setIsPublishing(false);
     }
   };
 
@@ -262,8 +292,16 @@ const ActiveGiveaway: React.FC = () => {
                   variant="outline"
                   size="sm"
                   className="text-orange-600 border-orange-600 hover:bg-orange-50"
+                  disabled={isPublishing}
                 >
-                  📤 Try Publishing Again
+                  {isPublishing ? (
+                    <>
+                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-orange-600 mr-2"></div>
+                      Publishing...
+                    </>
+                  ) : (
+                    <>📤 Try Publishing Again</>
+                  )}
                 </Button>
               ) : (
                 <Badge className={statusColor}>
@@ -280,6 +318,26 @@ const ActiveGiveaway: React.FC = () => {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* Publish Success Alert */}
+          {publishSuccess && (
+            <Alert className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950">
+              <CheckCircle className="h-4 w-4 text-green-600" />
+              <AlertDescription className="text-green-800 dark:text-green-200">
+                <strong>✅ Publishing Successful:</strong> Giveaway has been published to your Telegram channel!
+              </AlertDescription>
+            </Alert>
+          )}
+          
+          {/* Publish Error Alert */}
+          {publishError && (
+            <Alert className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950">
+              <AlertTriangle className="h-4 w-4 text-red-600" />
+              <AlertDescription className="text-red-800 dark:text-red-200">
+                <strong>❌ Publishing Failed:</strong> {publishError}
+              </AlertDescription>
+            </Alert>
+          )}
+          
           {/* Giveaway Content */}
           <div>
             <h4 className="font-medium text-foreground mb-2">Giveaway Message</h4>
@@ -505,6 +563,16 @@ const ActiveGiveaway: React.FC = () => {
                   Click "Try Publishing Again" to republish.
                 </AlertDescription>
               </Alert>
+              
+              {/* Publish Error Display */}
+              {publishError && (
+                <Alert className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950 mt-4">
+                  <AlertTriangle className="h-4 w-4 text-red-600" />
+                  <AlertDescription className="text-red-800 dark:text-red-200">
+                    <strong>❌ Publishing Failed:</strong> {publishError}
+                  </AlertDescription>
+                </Alert>
+              )}
             </div>
           )}
         </CardContent>

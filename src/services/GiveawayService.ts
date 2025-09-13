@@ -194,6 +194,58 @@ export class GiveawayService {
     return result;
   }
 
+  static async publishGiveaway(giveawayId: number): Promise<{ success: boolean; message?: string }> {
+    const giveawayServiceUrl = getServiceUrl('GIVEAWAY');
+    const url = `${giveawayServiceUrl}/api/giveaways/${giveawayId}/publish`;
+    
+    console.log('🔄 Making API call to publish giveaway...');
+    console.log('URL:', url);
+    console.log('Giveaway ID:', giveawayId);
+    console.log('Headers:', this.getAuthHeaders());
+    
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: this.getAuthHeaders()
+      });
+
+      console.log('📡 Publish API Response Status:', response.status);
+      console.log('📡 Publish API Response OK:', response.ok);
+
+      if (!response.ok) {
+        let errorData;
+        try {
+          errorData = await response.json();
+          console.error('❌ Publish API Error Response:', errorData);
+        } catch (parseError) {
+          console.error('❌ Failed to parse publish error response:', parseError);
+          errorData = { error: `HTTP ${response.status}: ${response.statusText}` };
+        }
+        throw new Error(errorData.error || errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      let result;
+      try {
+        result = await response.json();
+        console.log('✅ Publish API Success Response:', result);
+      } catch (parseError) {
+        console.error('❌ Failed to parse publish success response:', parseError);
+        throw new Error('Invalid response format from server');
+      }
+
+      if (!result.success) {
+        console.error('❌ Publish API returned success=false:', result);
+        throw new Error(result.message || result.error || 'Failed to publish giveaway');
+      }
+
+      console.log('✅ Giveaway published successfully via API');
+      return result;
+    } catch (error: any) {
+      console.error('❌ publishGiveaway API call failed:', error);
+      throw error;
+    }
+  }
+
   static async getGiveawayDetails(giveawayId: number): Promise<Giveaway> {
     const giveawayServiceUrl = getServiceUrl('GIVEAWAY');
     const response = await fetch(`${giveawayServiceUrl}/api/giveaways/${giveawayId}`, {

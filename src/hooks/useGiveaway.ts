@@ -4,6 +4,7 @@ import { RootState, AppDispatch } from '../store';
 import {
   createGiveaway,
   fetchActiveGiveaway,
+  publishGiveaway,
   updateFinishMessages,
   finishGiveaway,
   fetchHistory,
@@ -31,6 +32,14 @@ export const useGiveaway = () => {
   const handleFetchActiveGiveaway = useCallback(
     async (accountId: number) => {
       const result = await dispatch(fetchActiveGiveaway(accountId));
+      return result;
+    },
+    [dispatch]
+  );
+
+  const handlePublishGiveaway = useCallback(
+    async (giveawayId: number) => {
+      const result = await dispatch(publishGiveaway(giveawayId));
       return result;
     },
     [dispatch]
@@ -94,6 +103,7 @@ export const useGiveaway = () => {
     ...giveawayState,
     createGiveaway: handleCreateGiveaway,
     fetchActiveGiveaway: handleFetchActiveGiveaway,
+    publishGiveaway: handlePublishGiveaway,
     updateFinishMessages: handleUpdateFinishMessages,
     finishGiveaway: handleFinishGiveaway,
     fetchHistory: handleFetchHistory,
