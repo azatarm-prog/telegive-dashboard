@@ -24,9 +24,6 @@ const channelConfigSchema = z.object({
     .min(1, 'Channel username is required')
     .regex(/^@?[a-zA-Z0-9_]{5,32}$/, 'Invalid channel username format (e.g., @mychannel or mychannel)')
     .transform(val => val.startsWith('@') ? val : `@${val}`),
-  channelTitle: z.string()
-    .min(1, 'Channel title is required')
-    .max(100, 'Channel title must be less than 100 characters'),
 });
 
 type ChannelConfigData = z.infer<typeof channelConfigSchema>;
@@ -68,27 +65,21 @@ const ChannelConfigDialog: React.FC<ChannelConfigDialogProps> = ({
     mode: 'onChange',
     defaultValues: {
       channelUsername: currentConfig?.username || '',
-      channelTitle: currentConfig?.title || '',
     },
   });
 
   const watchedValues = watch();
 
   const handleVerifyChannel = async () => {
-    if (!isValid) return;
+    const channelUsername = watchedValues.channelUsername;
+    if (!channelUsername) return;
 
     try {
-      console.log('🔍 Verifying channel:', watchedValues.channelUsername);
-      const result = await verifyChannelAccess(watchedValues.channelUsername);
+      const result = await verifyChannelAccess(channelUsername);
+      console.log('🔍 Channel verification result:', result);
       
-      if (result.type === 'channel/verifyAccess/fulfilled') {
-        const verificationData = result.payload;
-        
-        // Auto-fill channel title if verification was successful and title is available
-        if (verificationData.success && verificationData.channelTitle && !watchedValues.channelTitle) {
-          setValue('channelTitle', verificationData.channelTitle);
-        }
-      }
+      // The verification result will be automatically stored in Redux state
+      // and displayed in the UI through the verificationResult state
     } catch (error: any) {
       console.error('❌ Channel verification failed:', error);
     }
@@ -102,7 +93,7 @@ const ChannelConfigDialog: React.FC<ChannelConfigDialogProps> = ({
     try {
       const config: ChannelConfig = {
         username: data.channelUsername,
-        title: data.channelTitle,
+        title: verificationResult.channelTitle || data.channelUsername, // Use retrieved title or fallback to username
         memberCount: verificationResult.memberCount,
         isVerified: true,
         botHasAdminRights: true,
@@ -202,25 +193,21 @@ const ChannelConfigDialog: React.FC<ChannelConfigDialogProps> = ({
             </p>
           </div>
 
-          {/* Channel Title Input */}
-          <div className="space-y-2">
-            <Label htmlFor="channelTitle" className="flex items-center">
-              <Users className="mr-1 h-4 w-4" />
-              Channel Title
-            </Label>
-            <Input
-              id="channelTitle"
-              placeholder="My Awesome Channel"
-              {...register('channelTitle')}
-              className={errors.channelTitle ? 'border-red-500' : ''}
-            />
-            {errors.channelTitle && (
-              <p className="text-sm text-red-600">{errors.channelTitle.message}</p>
-            )}
-            <p className="text-xs text-muted-foreground">
-              The display name of your channel (will be auto-filled after verification)
-            </p>
-          </div>
+          {/* Retrieved Channel Information (shown after verification) */}
+          {verificationResult?.success && verificationResult.channelTitle && (
+            <div className="space-y-2">
+              <Label className="flex items-center">
+                <Users className="mr-1 h-4 w-4" />
+                Channel Title
+              </Label>
+              <div className="p-3 bg-muted rounded-md">
+                <p className="text-sm font-medium">{verificationResult.channelTitle}</p>
+                <p className="text-xs text-muted-foreground">
+                  Retrieved automatically from Telegram
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Verification Button */}
           <div className="space-y-4">
