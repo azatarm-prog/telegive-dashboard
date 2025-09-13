@@ -24,6 +24,7 @@ export class AuthService {
         // Create account object from the response
         const account: Account = {
           id: parseInt(bot_id),
+          bot_id: parseInt(bot_id), // Set bot_id for Channel Service integration
           username: `bot_${bot_id}`,
           first_name: 'Telegram Bot',
           last_name: '',

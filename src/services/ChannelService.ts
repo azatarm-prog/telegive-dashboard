@@ -33,12 +33,13 @@ export class ChannelService {
   /**
    * Verify if the bot has admin rights in the specified channel
    */
-  static async verifyChannelAccess(channelUsername: string, accountId: number): Promise<ChannelVerificationResult> {
+  static async verifyChannelAccess(channelUsername: string, botId: number): Promise<ChannelVerificationResult> {
     const channelServiceUrl = getServiceUrl('CHANNEL');
     const url = `${channelServiceUrl}/api/channels/verify`;
     
     console.log('🔍 Verifying channel access...');
     console.log('Channel:', channelUsername);
+    console.log('Bot ID:', botId);
     console.log('URL:', url);
     
     try {
@@ -47,7 +48,7 @@ export class ChannelService {
         headers: this.getAuthHeaders(),
         body: JSON.stringify({
           channel_username: channelUsername,
-          account_id: accountId
+          account_id: botId // Using bot_id as account_id for Channel Service
         })
       });
 
@@ -117,12 +118,12 @@ export class ChannelService {
   /**
    * Save channel configuration for the current account
    */
-  static async saveChannelConfig(accountId: number, config: ChannelConfig): Promise<void> {
+  static async saveChannelConfig(botId: number, config: ChannelConfig): Promise<void> {
     const channelServiceUrl = getServiceUrl('CHANNEL');
-    const url = `${channelServiceUrl}/api/accounts/${accountId}/channel`;
+    const url = `${channelServiceUrl}/api/accounts/${botId}/channel`;
     
     console.log('💾 Saving channel configuration...');
-    console.log('Account ID:', accountId);
+    console.log('Bot ID:', botId);
     console.log('Config:', config);
     console.log('URL:', url);
     
@@ -178,12 +179,12 @@ export class ChannelService {
   /**
    * Get channel configuration for the current account
    */
-  static async getChannelConfig(accountId: number): Promise<ChannelConfig | null> {
+  static async getChannelConfig(botId: number): Promise<ChannelConfig | null> {
     const channelServiceUrl = getServiceUrl('CHANNEL');
-    const url = `${channelServiceUrl}/api/accounts/${accountId}/channel`;
+    const url = `${channelServiceUrl}/api/accounts/${botId}/channel`;
     
     console.log('📥 Getting channel configuration...');
-    console.log('Account ID:', accountId);
+    console.log('Bot ID:', botId);
     console.log('URL:', url);
     
     try {
@@ -245,12 +246,12 @@ export class ChannelService {
   /**
    * Delete channel configuration for the current account
    */
-  static async deleteChannelConfig(accountId: number): Promise<void> {
+  static async deleteChannelConfig(botId: number): Promise<void> {
     const channelServiceUrl = getServiceUrl('CHANNEL');
-    const url = `${channelServiceUrl}/api/accounts/${accountId}/channel`;
+    const url = `${channelServiceUrl}/api/accounts/${botId}/channel`;
     
     console.log('🗑️ Deleting channel configuration...');
-    console.log('Account ID:', accountId);
+    console.log('Bot ID:', botId);
     console.log('URL:', url);
     
     try {

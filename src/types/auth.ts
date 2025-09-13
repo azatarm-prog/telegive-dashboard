@@ -11,6 +11,7 @@ export interface LoginResponse {
 
 export interface Account {
   id: number;
+  bot_id: number; // Telegram bot ID for Channel Service integration (required)
   username: string;
   first_name: string;
   last_name?: string;

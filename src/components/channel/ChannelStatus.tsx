@@ -33,10 +33,10 @@ const ChannelStatus: React.FC<ChannelStatusProps> = ({
   const { account } = useAuth();
 
   useEffect(() => {
-    if (account?.id) {
-      fetchChannelConfig(account.id);
+    if (account?.bot_id) {
+      fetchChannelConfig(account.bot_id);
     }
-  }, [account?.id, fetchChannelConfig]);
+  }, [account?.bot_id, fetchChannelConfig]);
 
   const handleConfigureChannel = () => {
     setConfigDialogOpen(true);
@@ -48,8 +48,8 @@ const ChannelStatus: React.FC<ChannelStatusProps> = ({
   };
 
   const handleVerifyChannel = async () => {
-    if (config?.username) {
-      await verifyChannelAccess(config.username);
+    if (config?.username && account?.bot_id) {
+      await verifyChannelAccess(config.username, account.bot_id);
     }
   };
 
@@ -146,12 +146,12 @@ const ChannelStatus: React.FC<ChannelStatusProps> = ({
           {config ? 'Edit' : 'Configure'}
         </Button>
         
-        {account?.id && (
+        {account?.bot_id && (
           <ChannelConfigDialog
             open={configDialogOpen}
             onOpenChange={setConfigDialogOpen}
             currentConfig={config}
-            accountId={account.id}
+            accountId={account.bot_id}
             onSave={handleConfigSaved}
           />
         )}
@@ -307,12 +307,12 @@ const ChannelStatus: React.FC<ChannelStatusProps> = ({
       </CardContent>
 
       {/* Channel Configuration Dialog */}
-      {account?.id && (
+      {account?.bot_id && (
         <ChannelConfigDialog
           open={configDialogOpen}
           onOpenChange={setConfigDialogOpen}
           currentConfig={config}
-          accountId={account.id}
+          accountId={account.bot_id}
           onSave={handleConfigSaved}
         />
       )}
