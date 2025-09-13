@@ -144,11 +144,11 @@ const CurrentSettingsPanel: React.FC<CurrentSettingsPanelProps> = ({
 
         <div className="mt-3 grid grid-cols-2 gap-3 text-center">
           <div className="p-2 bg-blue-50 dark:bg-blue-950 rounded">
-            <p className="text-lg font-bold text-blue-600">{giveaway.participant_count}</p>
+            <p className="text-lg font-bold text-blue-600">{giveaway?.participant_count || 0}</p>
             <p className="text-xs text-blue-800 dark:text-blue-200">Total Participants</p>
           </div>
           <div className="p-2 bg-purple-50 dark:bg-purple-950 rounded">
-            <p className="text-lg font-bold text-purple-600">{giveaway.winner_count}</p>
+            <p className="text-lg font-bold text-purple-600">{giveaway?.winner_count || 0}</p>
             <p className="text-xs text-purple-800 dark:text-purple-200">Winners to Select</p>
           </div>
         </div>

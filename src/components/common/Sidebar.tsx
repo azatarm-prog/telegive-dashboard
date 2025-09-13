@@ -52,7 +52,7 @@ const Sidebar: React.FC = () => {
       title: 'Participants',
       href: ROUTES.DASHBOARD,
       icon: Users,
-      badge: activeGiveaway.participant_count,
+      badge: activeGiveaway?.participant_count || 0,
     },
     {
       title: 'Analytics',

@@ -137,9 +137,9 @@ const GiveawayHistoryItem: React.FC<GiveawayHistoryItemProps> = ({
   isExpanded,
   onToggleExpanded,
 }) => {
-  const statusColor = getStatusColor(giveaway.status);
-  const statusText = getStatusText(giveaway.status);
-  const duration = formatDuration(giveaway.created_at, giveaway.finished_at);
+  const statusColor = getStatusColor(giveaway?.status || 'unknown');
+  const statusText = getStatusText(giveaway?.status || 'unknown');
+  const duration = formatDuration(giveaway?.created_at, giveaway?.finished_at);
 
   return (
     <Card data-testid="history-item">
@@ -173,11 +173,11 @@ const GiveawayHistoryItem: React.FC<GiveawayHistoryItemProps> = ({
                   </div>
                   <div className="flex items-center">
                     <Users className="h-4 w-4 mr-1" />
-                    {giveaway.participant_count} participants
+                    {giveaway?.participant_count || 0} participants
                   </div>
                   <div className="flex items-center">
                     <Trophy className="h-4 w-4 mr-1" />
-                    {giveaway.winner_count} winners
+                    {giveaway?.winner_count || 0} winners
                   </div>
                 </div>
               </div>
@@ -221,17 +221,17 @@ const GiveawayHistoryItem: React.FC<GiveawayHistoryItemProps> = ({
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Total Participants:</span>
-                      <span className="font-medium">{giveaway.participant_count}</span>
+                      <span className="font-medium">{giveaway?.participant_count || 0}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Winners Selected:</span>
-                      <span className="font-medium">{giveaway.winner_count}</span>
+                      <span className="font-medium">{giveaway?.winner_count || 0}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Success Rate:</span>
                       <span className="font-medium">
-                        {giveaway.participant_count > 0 
-                          ? `${((giveaway.winner_count / giveaway.participant_count) * 100).toFixed(1)}%`
+                        {(giveaway?.participant_count || 0) > 0 
+                          ? `${(((giveaway?.winner_count || 0) / (giveaway?.participant_count || 1)) * 100).toFixed(1)}%`
                           : '0%'
                         }
                       </span>
