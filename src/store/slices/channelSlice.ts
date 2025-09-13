@@ -20,9 +20,9 @@ const initialState: ChannelState = {
 // Async thunks
 export const verifyChannelAccess = createAsyncThunk(
   'channel/verifyAccess',
-  async (channelUsername: string, { rejectWithValue }) => {
+  async ({ channelUsername, accountId }: { channelUsername: string; accountId: number }, { rejectWithValue }) => {
     try {
-      return await ChannelService.verifyChannelAccess(channelUsername);
+      return await ChannelService.verifyChannelAccess(channelUsername, accountId);
     } catch (error: any) {
       return rejectWithValue(error.message || 'Failed to verify channel access');
     }

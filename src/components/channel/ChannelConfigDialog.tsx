@@ -75,7 +75,7 @@ const ChannelConfigDialog: React.FC<ChannelConfigDialogProps> = ({
     if (!channelUsername) return;
 
     try {
-      const result = await verifyChannelAccess(channelUsername);
+      const result = await verifyChannelAccess(channelUsername, accountId);
       console.log('🔍 Channel verification result:', result);
       
       // The verification result will be automatically stored in Redux state

@@ -17,8 +17,8 @@ export const useChannel = () => {
   const channelState = useSelector((state: RootState) => state.channel);
 
   const handleVerifyChannelAccess = useCallback(
-    async (channelUsername: string) => {
-      const result = await dispatch(verifyChannelAccess(channelUsername));
+    async (channelUsername: string, accountId: number) => {
+      const result = await dispatch(verifyChannelAccess({ channelUsername, accountId }));
       return result;
     },
     [dispatch]

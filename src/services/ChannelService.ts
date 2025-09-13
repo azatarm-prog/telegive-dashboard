@@ -33,7 +33,7 @@ export class ChannelService {
   /**
    * Verify if the bot has admin rights in the specified channel
    */
-  static async verifyChannelAccess(channelUsername: string): Promise<ChannelVerificationResult> {
+  static async verifyChannelAccess(channelUsername: string, accountId: number): Promise<ChannelVerificationResult> {
     const channelServiceUrl = getServiceUrl('CHANNEL');
     const url = `${channelServiceUrl}/api/channels/verify`;
     
@@ -47,7 +47,7 @@ export class ChannelService {
         headers: this.getAuthHeaders(),
         body: JSON.stringify({
           channel_username: channelUsername,
-          account_id: 1 // Using account ID 1 for testing, should be passed as parameter
+          account_id: accountId
         })
       });
 
