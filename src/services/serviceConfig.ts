@@ -4,7 +4,7 @@ export const SERVICE_URLS = {
   GIVEAWAY: import.meta.env.VITE_TELEGIVE_GIVEAWAY_URL || 'https://telegive-giveaway-production.up.railway.app',
   PARTICIPANT: import.meta.env.VITE_TELEGIVE_PARTICIPANT_URL || 'https://telegive-participant-production.up.railway.app',
   MEDIA: import.meta.env.VITE_TELEGIVE_MEDIA_URL || 'https://telegive-media-production.up.railway.app',
-  CHANNEL: import.meta.env.VITE_TELEGIVE_CHANNEL_URL || 'https://telegive-channel-service.railway.app',
+  CHANNEL: import.meta.env.VITE_TELEGIVE_CHANNEL_URL || 'https://telegive-channel-production.up.railway.app',
   BOT: import.meta.env.VITE_TELEGIVE_BOT_URL || 'https://telegive-bot-production.up.railway.app',
 } as const;
 

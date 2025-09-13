@@ -34,8 +34,8 @@ export class ChannelService {
    * Verify if the bot has admin rights in the specified channel
    */
   static async verifyChannelAccess(channelUsername: string): Promise<ChannelVerificationResult> {
-    const giveawayServiceUrl = getServiceUrl('GIVEAWAY');
-    const url = `${giveawayServiceUrl}/api/channels/verify`;
+    const channelServiceUrl = getServiceUrl('CHANNEL');
+    const url = `${channelServiceUrl}/api/channels/verify`;
     
     console.log('🔍 Verifying channel access...');
     console.log('Channel:', channelUsername);
@@ -46,7 +46,8 @@ export class ChannelService {
         method: 'POST',
         headers: this.getAuthHeaders(),
         body: JSON.stringify({
-          channel_username: channelUsername
+          channel_username: channelUsername,
+          account_id: 1 // Using account ID 1 for testing, should be passed as parameter
         })
       });
 
@@ -117,8 +118,8 @@ export class ChannelService {
    * Save channel configuration for the current account
    */
   static async saveChannelConfig(accountId: number, config: ChannelConfig): Promise<void> {
-    const giveawayServiceUrl = getServiceUrl('GIVEAWAY');
-    const url = `${giveawayServiceUrl}/api/accounts/${accountId}/channel`;
+    const channelServiceUrl = getServiceUrl('CHANNEL');
+    const url = `${channelServiceUrl}/api/accounts/${accountId}/channel`;
     
     console.log('💾 Saving channel configuration...');
     console.log('Account ID:', accountId);
@@ -178,8 +179,8 @@ export class ChannelService {
    * Get channel configuration for the current account
    */
   static async getChannelConfig(accountId: number): Promise<ChannelConfig | null> {
-    const giveawayServiceUrl = getServiceUrl('GIVEAWAY');
-    const url = `${giveawayServiceUrl}/api/accounts/${accountId}/channel`;
+    const channelServiceUrl = getServiceUrl('CHANNEL');
+    const url = `${channelServiceUrl}/api/accounts/${accountId}/channel`;
     
     console.log('📥 Getting channel configuration...');
     console.log('Account ID:', accountId);
@@ -245,8 +246,8 @@ export class ChannelService {
    * Delete channel configuration for the current account
    */
   static async deleteChannelConfig(accountId: number): Promise<void> {
-    const giveawayServiceUrl = getServiceUrl('GIVEAWAY');
-    const url = `${giveawayServiceUrl}/api/accounts/${accountId}/channel`;
+    const channelServiceUrl = getServiceUrl('CHANNEL');
+    const url = `${channelServiceUrl}/api/accounts/${accountId}/channel`;
     
     console.log('🗑️ Deleting channel configuration...');
     console.log('Account ID:', accountId);
