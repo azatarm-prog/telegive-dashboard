@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Navigate, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Plus, LogOut, Home, History } from 'lucide-react';
+import { ArrowLeft, Plus, LogOut, Home, History, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
@@ -14,7 +14,9 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import GiveawayForm from '@/components/giveaway/GiveawayForm';
 import DefaultSettingsPanel from '@/components/giveaway/DefaultSettingsPanel';
+import ChannelStatus from '@/components/channel/ChannelStatus';
 import { useGiveaway } from '@/hooks/useGiveaway';
+import { useChannel } from '@/hooks/useChannel';
 import { useAuth } from '@/hooks/useAuth';
 import { ROUTES } from '@/utils/constants';
 
@@ -22,6 +24,7 @@ const CreateGiveawayPage: React.FC = () => {
   const navigate = useNavigate();
   const { account, logout } = useAuth();
   const { activeGiveaway, fetchActiveGiveaway } = useGiveaway();
+  const { config: channelConfig } = useChannel();
 
   useEffect(() => {
     // Temporarily disabled again - causing navigation issues due to account validation failures
@@ -190,6 +193,20 @@ const CreateGiveawayPage: React.FC = () => {
                 <p className="text-muted-foreground">Set up a new giveaway for your Telegram community</p>
               </div>
             </div>
+
+            {/* Channel Configuration Check */}
+            {(!channelConfig || !channelConfig.isVerified || !channelConfig.botHasAdminRights) && (
+              <Alert className="border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-950">
+                <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                <AlertDescription className="text-yellow-800 dark:text-yellow-200">
+                  <strong>Channel Configuration Required:</strong> You need to configure and verify your Telegram channel before creating giveaways. 
+                  Please configure your channel in the dashboard first.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {/* Channel Status (Compact) */}
+            <ChannelStatus compact={true} />
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Giveaway Form */}

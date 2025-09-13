@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/dialog';
 import MediaPreview from '@/components/media/MediaPreview';
 import { useGiveaway } from '@/hooks/useGiveaway';
+import { useChannel } from '@/hooks/useChannel';
 import { useRealTimeUpdates } from '@/hooks/useRealTimeUpdates';
 import { formatDate, formatDuration, getStatusColor, getStatusText } from '@/utils/formatting';
 
@@ -42,6 +43,7 @@ type FinishMessagesData = z.infer<typeof finishMessagesSchema>;
 
 const ActiveGiveaway: React.FC = () => {
   const { activeGiveaway, loading } = useGiveaway();
+  const { config: channelConfig } = useChannel();
   const { isConnected } = useRealTimeUpdates();
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [isFinishing, setIsFinishing] = useState(false);
@@ -233,6 +235,17 @@ const ActiveGiveaway: React.FC = () => {
   const handleTryPublishAgain = async () => {
     if (!activeGiveaway) return;
     
+    // Check if channel is configured and verified
+    if (!channelConfig) {
+      setPublishError('No Telegram channel configured. Please configure your channel in the dashboard before publishing.');
+      return;
+    }
+    
+    if (!channelConfig.isVerified || !channelConfig.botHasAdminRights) {
+      setPublishError('Channel configuration needs verification. Please verify that your bot has admin rights in the configured channel.');
+      return;
+    }
+    
     setIsPublishing(true);
     setPublishError(null);
     setPublishSuccess(false);
@@ -240,6 +253,7 @@ const ActiveGiveaway: React.FC = () => {
     try {
       console.log('🔄 Starting giveaway republishing process...');
       console.log('Giveaway ID:', activeGiveaway.id);
+      console.log('Channel Config:', channelConfig);
       
       const result = await publishGiveaway(activeGiveaway.id);
       

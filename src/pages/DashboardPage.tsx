@@ -18,6 +18,7 @@ import { useGiveaway } from '@/hooks/useGiveaway';
 import { ROUTES } from '@/utils/constants';
 import ActiveGiveaway from '@/components/giveaway/ActiveGiveaway';
 import CurrentSettingsPanel from '@/components/giveaway/CurrentSettingsPanel';
+import ChannelStatus from '@/components/channel/ChannelStatus';
 
 const DashboardPage: React.FC = () => {
   const { account, logout } = useAuth();
@@ -250,6 +251,9 @@ const DashboardPage: React.FC = () => {
                 );
               })}
             </div>
+
+            {/* Channel Configuration */}
+            <ChannelStatus />
 
             {/* Main Dashboard Content */}
             {hasActiveGiveaway ? (
